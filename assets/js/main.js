@@ -124,6 +124,25 @@
     });
   }
 
+  /* ---------- 6. 免疫动画热区联动（页 3） ---------- */
+  /* 悬停 / 键盘聚焦 / 点击热区时，为动画舞台加上对应高亮类，
+     SVG 中相应解剖层点亮并浮现标注；移开后平滑恢复。
+     点击行为本身仍由 data-modal 弹窗逻辑（initModals）负责。 */
+  function initImmuneHotspots() {
+    var stage = document.querySelector(".demo-stage");
+    if (!stage) return;
+    stage.querySelectorAll(".hotspot").forEach(function (h) {
+      var cls = h.classList.contains("synovium") ? "hl-synovium" : "hl-cartilage";
+      function on()  { stage.classList.add(cls); }
+      function off() { stage.classList.remove(cls); }
+      h.addEventListener("pointerenter", on);
+      h.addEventListener("pointerleave", off);
+      h.addEventListener("focus", on);
+      h.addEventListener("blur", off);
+      h.addEventListener("click", on); // 触屏点击后保持高亮，强化区域关联
+    });
+  }
+
   /* ---------- 启动 ---------- */
   document.addEventListener("DOMContentLoaded", function () {
     initNav();
@@ -131,6 +150,7 @@
     initModals();
     initLabUpload();
     initExportCsv();
+    initImmuneHotspots();
   });
 
   // 暴露给内联调用（如发送按钮跳转）

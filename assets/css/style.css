@@ -273,9 +273,9 @@ h1, h2, h3, h4 { line-height: 1.25; color: var(--blue-900); margin: 0 0 .5em; }
 .metric .note { font-size: 13px; color: var(--muted); margin-top: 4px; }
 
 /* =========================================================
-   页 3：免疫机制演示
+   页 3：免疫机制演示（SVG 动画版，替代视频以保证流畅）
    ========================================================= */
-.video-stage {
+.demo-stage {
   position: relative;
   aspect-ratio: 16 / 9;
   border-radius: var(--radius);
@@ -285,28 +285,67 @@ h1, h2, h3, h4 { line-height: 1.25; color: var(--blue-900); margin: 0 0 .5em; }
   border: 1px solid var(--blue-900);
   box-shadow: var(--shadow-lg);
 }
-.video-stage .play {
-  position: absolute; inset: 0; margin: auto;
-  width: 78px; height: 78px; border-radius: 50%;
-  background: rgba(255,255,255,.92); display: grid; place-items: center;
-  box-shadow: var(--shadow); cursor: pointer;
-}
-.video-stage .play::after {
-  content: ""; border-style: solid; border-width: 14px 0 14px 24px;
-  border-color: transparent transparent transparent var(--blue-600);
-  margin-left: 6px;
-}
-.video-stage video.demo-video {
+.demo-stage svg.joint-anim {
   position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  object-fit: cover; display: block;
-  background: #0c2440;
+  width: 100%; height: 100%; display: block;
 }
-.video-stage .hint {
+.demo-stage .hint {
   position: absolute; left: 14px; top: 12px; right: 14px;
   color: #cfe2ff; font-size: 13px; text-shadow: 0 1px 4px rgba(0,0,0,.5);
   pointer-events: none;
 }
+
+/* ---- 常驻动画：仅用 transform / opacity，GPU 友好 ---- */
+/* 免疫细胞沿血管浸润漂移 */
+@keyframes cellDrift {
+  0%   { transform: translate(0, 0); opacity: 0; }
+  12%  { opacity: 1; }
+  75%  { opacity: 1; }
+  100% { transform: translate(118px, var(--dy, -8px)); opacity: 0; }
+}
+.joint-anim .cell { animation: cellDrift 5.2s linear infinite; }
+
+/* 关节腔滑液微光 */
+@keyframes fluidGlow {
+  from { opacity: .16; }
+  to   { opacity: .34; }
+}
+.joint-anim .fluid { animation: fluidGlow 4s ease-in-out infinite alternate; }
+
+/* 滑膜炎症红晕脉冲 */
+@keyframes inflamePulse {
+  0%, 100% { opacity: .18; }
+  50%      { opacity: .5; }
+}
+.joint-anim .inflame   { animation: inflamePulse 2.6s ease-in-out infinite; }
+.joint-anim .inflame-2 { animation: inflamePulse 2.6s ease-in-out 1.3s infinite; }
+
+/* ---- 热区高亮联动（悬停 / 聚焦 / 点击时触发） ---- */
+.joint-anim .lyr { transition: opacity .3s ease; }
+.joint-anim .hl-overlay { opacity: 0; transition: opacity .25s ease; }
+.joint-anim .hl-label { transform: translateY(-5px); transition: transform .3s ease; }
+.joint-anim .hl-glow { animation: hlPulse 1.5s ease-in-out infinite; }
+
+@keyframes hlPulse {
+  0%, 100% { opacity: .65; }
+  50%      { opacity: 1; }
+}
+
+/* 高亮「滑膜」：目标层点亮 + 标注浮现，其余层弱化 */
+.demo-stage.hl-synovium .hl-overlay-syn { opacity: 1; }
+.demo-stage.hl-synovium .hl-overlay-syn .hl-label { transform: translateY(0); }
+.demo-stage.hl-synovium .lyr-bone,
+.demo-stage.hl-synovium .lyr-cartilage { opacity: .38; }
+.demo-stage.hl-synovium .lyr-cells .cell { fill-opacity: 1; }
+
+/* 高亮「软骨 / 骨组织」 */
+.demo-stage.hl-cartilage .hl-overlay-car { opacity: 1; }
+.demo-stage.hl-cartilage .hl-overlay-car .hl-label { transform: translateY(0); }
+.demo-stage.hl-cartilage .lyr-synovium,
+.demo-stage.hl-cartilage .lyr-bone { opacity: .42; }
+.demo-stage.hl-cartilage .lyr-cells { opacity: .35; }
+.demo-stage.hl-cartilage .lyr-inflame { opacity: .35; }
+
 .hotspot {
   position: absolute; width: 88px; height: 88px; transform: translate(-50%, -50%);
   border-radius: 50%; border: 2px dashed rgba(255,255,255,.85);
