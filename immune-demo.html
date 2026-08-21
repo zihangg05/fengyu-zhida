@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>免疫机制演示 · 风语智答｜风湿免疫病智能科普患教平台</title>
+  <meta name="description" content="风语智答 3D 免疫机制演示：通过关节滑膜与软骨骨组织热区，了解风湿免疫病相关的科普结构。本页为交互原型 Demo。">
+  <meta property="og:title" content="风语智答 · 免疫机制演示">
+  <meta property="og:description" content="关节免疫机制科普演示（原型）">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="nav-container">
+      <a class="brand" href="index.html" aria-label="风语智答 首页">
+        <span class="brand-logo">风</span>
+        <span class="brand-text"><strong>风语智答</strong><small>智能科普患教平台</small></span>
+      </a>
+      <button class="nav-toggle" aria-label="打开导航菜单" aria-expanded="false" aria-controls="nav-menu">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav-menu" id="nav-menu" aria-label="主导航">
+        <a href="index.html">智能问答</a>
+        <a href="lab-reading.html">化验单解读</a>
+        <a href="immune-demo.html">免疫机制演示</a>
+        <a href="admin.html">管理后台</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">免疫机制演示</span>
+        <h1>认识关节的免疫结构</h1>
+        <p>点击下方视频画面中的高亮热区，了解「滑膜」与「软骨 / 骨组织」的基本结构与作用。本演示为科普示意。</p>
+      </div>
+
+      <div class="video-stage" role="img" aria-label="关节免疫机制演示视频（占位）">
+        <button class="play" aria-label="播放演示视频（占位）"></button>
+        <button class="hotspot synovium" data-modal="synoviumModal" aria-haspopup="dialog">滑膜</button>
+        <button class="hotspot cartilage" data-modal="cartilageModal" aria-haspopup="dialog">软骨 / 骨组织</button>
+        <div class="hint">示意：关节剖面 · 点击圆形热区查看讲解</div>
+      </div>
+
+      <ul style="margin-top:18px;color:var(--muted);font-size:14px;line-height:1.9;">
+        <li><strong style="color:var(--blue-900);">滑膜</strong>：关节内壁的薄膜，正常时分泌滑液润滑关节。</li>
+        <li><strong style="color:var(--blue-900);">软骨 / 骨组织</strong>：覆盖骨端的缓冲层，保护骨骼、吸收冲击。</li>
+      </ul>
+    </div>
+  </main>
+
+  <!-- 滑膜讲解弹窗 -->
+  <div class="modal" id="synoviumModal" role="dialog" aria-modal="true" aria-labelledby="synTitle" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <h3 id="synTitle">关节滑膜</h3>
+        <button class="modal-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p><strong>滑膜</strong>是衬在关节腔内壁的一层薄膜组织，由滑膜细胞构成。它的主要作用是分泌<strong>滑液</strong>，起到润滑关节、营养软骨、减少摩擦的功能。</p>
+        <p>在类风湿关节炎等风湿免疫病中，滑膜可能出现异常增生与炎症（滑膜炎），长期炎症可侵蚀软骨与骨组织。因此保护滑膜健康对维持关节功能十分重要。</p>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:0;">* 以上内容仅为科普示意，具体诊疗请遵医嘱。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 软骨骨组织讲解弹窗 -->
+  <div class="modal" id="cartilageModal" role="dialog" aria-modal="true" aria-labelledby="carTitle" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <h3 id="carTitle">软骨与骨组织</h3>
+        <button class="modal-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p><strong>关节软骨</strong>是覆盖在骨端表面的一层光滑、有弹性的结缔组织，能在活动时缓冲压力、减少磨损；其下方为<strong>骨组织</strong>，构成骨骼支撑结构。</p>
+        <p>软骨本身血供较少、修复能力有限。当炎症或机械损伤长期存在时，软骨可能变薄、破坏，进而导致关节疼痛、畸形与活动障碍。</p>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:0;">* 以上内容仅为科普示意，具体诊疗请遵医嘱。</p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="disclaimer">
+    <p>⚠ 全部内容仅为科普参考，不构成任何专业建议，不能替代医师面诊，身体异常请前往医院专科就诊。</p>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

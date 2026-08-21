@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理后台 · 风语智答｜风湿免疫病智能科普患教平台</title>
+  <meta name="description" content="风语智答管理后台演示：知识库管理与对话日志查看（交互原型 Demo）。">
+  <meta property="og:title" content="风语智答 · 管理后台">
+  <meta property="og:description" content="知识库与对话日志管理演示（原型）">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="nav-container">
+      <a class="brand" href="index.html" aria-label="风语智答 首页">
+        <span class="brand-logo">风</span>
+        <span class="brand-text"><strong>风语智答</strong><small>智能科普患教平台</small></span>
+      </a>
+      <button class="nav-toggle" aria-label="打开导航菜单" aria-expanded="false" aria-controls="nav-menu">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav-menu" id="nav-menu" aria-label="主导航">
+        <a href="index.html">智能问答</a>
+        <a href="lab-reading.html">化验单解读</a>
+        <a href="immune-demo.html">免疫机制演示</a>
+        <a href="admin.html">管理后台</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">管理后台</span>
+        <h1>知识库与对话日志</h1>
+        <p>管理科普知识条目与查看对话日志。本页为交互原型演示，数据均为示例。</p>
+      </div>
+
+      <section class="card">
+        <div class="toolbar">
+          <h2>知识库管理</h2>
+          <button class="btn btn-ghost" id="exportCsv" type="button">导出 CSV</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>编号</th><th>分类</th><th>科普标题</th><th>更新时间</th><th>状态</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>K001</td><td>类风湿关节炎</td><td>类风湿因子升高说明什么</td><td>2026-08-12</td><td><span class="badge ok">已发布</span></td><td><button class="link-btn" type="button">编辑</button></td></tr>
+              <tr><td>K002</td><td>红斑狼疮</td><td>蝶形红斑是什么表现</td><td>2026-08-10</td><td><span class="badge ok">已发布</span></td><td><button class="link-btn" type="button">编辑</button></td></tr>
+              <tr><td>K003</td><td>强直性脊柱炎</td><td>晨僵与腰痛如何区分</td><td>2026-08-08</td><td><span class="badge warn">待审核</span></td><td><button class="link-btn" type="button">编辑</button></td></tr>
+              <tr><td>K004</td><td>痛风</td><td>尿酸高一定要吃药吗</td><td>2026-08-05</td><td><span class="badge ok">已发布</span></td><td><button class="link-btn" type="button">编辑</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="toolbar">
+          <h2>对话日志</h2>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>日志ID</th><th>提问摘要</th><th>回复摘要</th><th>时间</th><th>风险标记</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>L2401</td><td>类风湿因子偏高是否确诊</td><td>说明 RF 意义并建议就诊</td><td>2026-08-20 09:12</td><td><span class="badge risk">高风险</span></td></tr>
+              <tr><td>L2402</td><td>红斑狼疮会遗传吗</td><td>科普遗传倾向，建议面诊</td><td>2026-08-20 10:03</td><td><span class="badge ok">正常</span></td></tr>
+              <tr><td>L2403</td><td>怎么缓解晨僵</td><td>科普热身与就医建议</td><td>2026-08-20 11:27</td><td><span class="badge ok">正常</span></td></tr>
+              <tr><td>L2404</td><td>自行调整用药剂量</td><td>拒答并提示遵医嘱</td><td>2026-08-20 14:48</td><td><span class="badge risk">高风险</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="disclaimer">
+    <p>⚠ 全部内容仅为科普参考，不构成任何专业建议，不能替代医师面诊，身体异常请前往医院专科就诊。</p>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

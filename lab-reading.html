@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>化验单解读 · 风语智答｜风湿免疫病智能科普患教平台</title>
+  <meta name="description" content="风语智答化验单解读演示：上传化验单图片，查看模拟指标解读与科普说明。本页为交互原型 Demo。">
+  <meta property="og:title" content="风语智答 · 化验单解读">
+  <meta property="og:description" content="风湿免疫病化验单科普解读演示（原型）">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="nav-container">
+      <a class="brand" href="index.html" aria-label="风语智答 首页">
+        <span class="brand-logo">风</span>
+        <span class="brand-text"><strong>风语智答</strong><small>智能科普患教平台</small></span>
+      </a>
+      <button class="nav-toggle" aria-label="打开导航菜单" aria-expanded="false" aria-controls="nav-menu">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav-menu" id="nav-menu" aria-label="主导航">
+        <a href="index.html">智能问答</a>
+        <a href="lab-reading.html">化验单解读</a>
+        <a href="immune-demo.html">免疫机制演示</a>
+        <a href="admin.html">管理后台</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">化验单解读</span>
+        <h1>上传化验单，查看科普解读</h1>
+        <p>上传一张化验单图片（演示），系统将模拟展示指标解读与科普说明。本功能为原型演示，解读结果不具医疗效力。</p>
+      </div>
+
+      <!-- 状态 1：上传 -->
+      <div id="uploadState">
+        <div class="upload-card" id="uploadCard" role="button" tabindex="0" aria-label="上传化验单图片">
+          <div class="upload-icon" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1E6FD9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          </div>
+          <h3 style="margin:0 0 4px;">上传化验单图片</h3>
+          <p style="color:var(--muted);margin:0 0 16px;">支持 JPG / PNG，演示环境不会真实上传或分析</p>
+          <button class="btn btn-primary" id="uploadBtn" type="button">选择文件并解读</button>
+        </div>
+      </div>
+
+      <!-- 状态 2：报告解读 -->
+      <div id="reportState" hidden>
+        <div class="report-grid">
+          <div class="report-figure">
+            <div class="figure">化验单图片占位区<br>（演示）</div>
+            <p style="font-size:12px;color:var(--muted);margin:10px 0 0;text-align:center;">示例：风湿免疫相关指标报告</p>
+          </div>
+          <div>
+            <h3 style="margin-top:0;">指标解读（示例）</h3>
+            <div class="metric">
+              <div class="row">
+                <span class="name">类风湿因子 (RF)</span>
+                <span class="val high">偏高 ↑</span>
+              </div>
+              <div class="range">参考范围：&lt; 20 IU/mL</div>
+              <div class="note">RF 升高可见于类风湿关节炎，也可见于其他自身免疫病或感染，需结合临床判断。</div>
+            </div>
+            <div class="metric">
+              <div class="row">
+                <span class="name">抗环瓜氨酸肽抗体 (抗CCP)</span>
+                <span class="val high">阳性 +</span>
+              </div>
+              <div class="range">参考范围：阴性</div>
+              <div class="note">抗 CCP 抗体对类风湿关节炎有较高特异性，阳性时需重视并就诊专科。</div>
+            </div>
+            <div class="metric">
+              <div class="row">
+                <span class="name">C 反应蛋白 (CRP)</span>
+                <span class="val ok">正常</span>
+              </div>
+              <div class="range">参考范围：0 – 10 mg/L</div>
+              <div class="note">CRP 反映炎症活动度，正常提示当前无明显急性炎症。</div>
+            </div>
+            <p style="font-size:13px;color:var(--muted);margin:14px 0 0;">
+              * 以上为演示数据，真实化验单请以检验报告为准，并咨询专科医师。
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="disclaimer">
+    <p>⚠ 全部内容仅为科普参考，不构成任何专业建议，不能替代医师面诊，身体异常请前往医院专科就诊。</p>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

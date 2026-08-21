@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>安全拒答演示 · 风语智答｜风湿免疫病智能科普患教平台</title>
+  <meta name="description" content="风语智答安全拒答演示：面对高风险个体化问题，平台仅提供科普提示并建议就医。本页为交互原型 Demo。">
+  <meta property="og:title" content="风语智答 · 安全拒答演示">
+  <meta property="og:description" content="高风险提问的安全拒答演示（原型）">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="nav-container">
+      <a class="brand" href="index.html" aria-label="风语智答 首页">
+        <span class="brand-logo">风</span>
+        <span class="brand-text"><strong>风语智答</strong><small>智能科普患教平台</small></span>
+      </a>
+      <button class="nav-toggle" aria-label="打开导航菜单" aria-expanded="false" aria-controls="nav-menu">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav-menu" id="nav-menu" aria-label="主导航">
+        <a href="index.html">智能问答</a>
+        <a href="lab-reading.html">化验单解读</a>
+        <a href="immune-demo.html">免疫机制演示</a>
+        <a href="admin.html">管理后台</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <div class="section-head" style="text-align:center;">
+        <span class="eyebrow">安全拒答演示</span>
+        <h1>平台只做科普，不做个体化判断</h1>
+      </div>
+
+      <div class="qa-wrap" style="max-width:760px;">
+        <section class="chat" aria-label="对话区域">
+          <div class="msg user">
+            <div class="avatar">我</div>
+            <div class="bubble">高风险提问示例（占位文本）：我这种情况应该吃哪种药、吃多少剂量？</div>
+          </div>
+          <div class="msg ai">
+            <div class="avatar">AI</div>
+            <div class="bubble">
+              非常理解您对健康的关切。不过，风语智答仅提供<strong>健康科普参考</strong>，无法针对个人病情给出用药、剂量等个体化判断。这类问题需要结合您的具体检查结果与身体状况，由执业医师面诊后决定。
+            </div>
+          </div>
+        </section>
+
+        <div class="refusal-card">
+          <h3>就医提示</h3>
+          <p style="margin:0;color:var(--muted);">为保障安全，请前往正规医院风湿免疫科就诊，并携带既往检查报告与用药记录，便于医师综合评估。</p>
+          <div class="visit-card">
+            <span class="ic" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M9 9h6M9 13h6M9 17h6"/></svg>
+            </span>
+            <div>
+              <strong>建议科室：风湿免疫科</strong>
+              <div style="font-size:13px;color:var(--muted);">如当地未开设专科，可先就诊内科 / 骨科，由医师转诊。</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align:center;margin-top:8px;">
+          <a class="btn btn-primary" href="index.html">返回智能问答</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="disclaimer">
+    <p>⚠ 全部内容仅为科普参考，不构成任何专业建议，不能替代医师面诊，身体异常请前往医院专科就诊。</p>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

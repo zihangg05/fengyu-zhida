@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智能问答 · 风语智答｜风湿免疫病智能科普患教平台</title>
+  <meta name="description" content="风语智答是一个面向大众的风湿免疫病智能科普问答与患教演示平台，提供健康科普参考。本页为交互原型 Demo，不提供真实医疗建议。">
+  <meta property="og:title" content="风语智答 · 智能问答">
+  <meta property="og:description" content="风湿免疫病智能科普问答与患教平台（科普演示原型）">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="nav-container">
+      <a class="brand" href="index.html" aria-label="风语智答 首页">
+        <span class="brand-logo">风</span>
+        <span class="brand-text"><strong>风语智答</strong><small>智能科普患教平台</small></span>
+      </a>
+      <button class="nav-toggle" aria-label="打开导航菜单" aria-expanded="false" aria-controls="nav-menu">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav-menu" id="nav-menu" aria-label="主导航">
+        <a href="index.html">智能问答</a>
+        <a href="lab-reading.html">化验单解读</a>
+        <a href="immune-demo.html">免疫机制演示</a>
+        <a href="admin.html">管理后台</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <div class="section-head" style="text-align:center;margin-bottom:22px;">
+        <span class="eyebrow">智能科普问答</span>
+        <h1>健康科普，有问有答</h1>
+        <p style="margin:0 auto;">输入您的疑问，获取风湿免疫病相关的科普解读与参考来源。所有内容仅为科普演示，不构成医疗建议。</p>
+      </div>
+
+      <div class="qa-wrap">
+        <section class="chat" aria-label="对话区域">
+          <div class="msg ai">
+            <div class="avatar">AI</div>
+            <div class="bubble">
+              您好，我是风语智答科普助手。关于类风湿关节炎、红斑狼疮等风湿免疫病，我可以提供科普参考。例如：<em>“类风湿因子升高说明什么？”</em>
+              <br>您可以向我提问，我会结合科普资料给出说明，并标注
+              <button class="cite" data-modal="sourceModal" aria-haspopup="dialog">[1]</button>
+              <button class="cite" data-modal="sourceModal" aria-haspopup="dialog">[2]</button>
+              来源供您查阅。
+            </div>
+          </div>
+
+          <div class="msg user">
+            <div class="avatar">我</div>
+            <div class="bubble">我的类风湿因子（RF）偏高，这是不是一定是类风湿？</div>
+          </div>
+
+          <div class="msg ai">
+            <div class="avatar">AI</div>
+            <div class="bubble">
+              类风湿因子（RF）升高并不一定意味着患有类风湿关节炎。RF 也可见于其他自身免疫病、感染，甚至部分健康老年人
+              <button class="cite" data-modal="sourceModal" aria-haspopup="dialog">查看来源</button>。
+              具体诊断需结合症状、体征与多项检查，由专科医师综合判断。
+            </div>
+          </div>
+        </section>
+
+        <form class="composer" onsubmit="return false;" aria-label="输入区">
+          <label for="qa-input" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);">输入您的问题</label>
+          <textarea id="qa-input" placeholder="描述您的疑问，例如：晨僵超过多久需要留意？"></textarea>
+          <a class="btn btn-primary" href="refusal.html" style="align-self:flex-end;">发送</a>
+        </form>
+        <p style="text-align:center;color:var(--muted);font-size:13px;margin:4px 0 0;">
+          演示提示：点击「发送」将进入安全拒答演示页。
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="disclaimer">
+    <p>⚠ 全部内容仅为科普参考，不构成任何专业建议，不能替代医师面诊，身体异常请前往医院专科就诊。</p>
+  </footer>
+
+  <!-- 引用来源弹窗 -->
+  <div class="modal" id="sourceModal" role="dialog" aria-modal="true" aria-labelledby="sourceTitle" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <h3 id="sourceTitle">引用来源</h3>
+        <button class="modal-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <ul class="source-list">
+          <li><div class="t">《类风湿关节炎诊疗指南（科普版）》</div><div class="d">中华医学会风湿病学分会 · 公开科普资料</div></li>
+          <li><div class="t">《自身抗体检测临床意义专家共识》</div><div class="d">风湿免疫相关学术组织 · 科普摘要</div></li>
+          <li><div class="t">患者教育手册：读懂化验单</div><div class="d">三甲医院风湿免疫科患教材料（示例）</div></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
