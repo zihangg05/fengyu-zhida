@@ -314,6 +314,47 @@ h1, h2, h3, h4 { line-height: 1.25; color: var(--blue-900); margin: 0 0 .5em; }
   50% { box-shadow: 0 0 0 12px rgba(120,190,255,0); }
 }
 
+/* ===== 3D 关节模型查看器 ===== */
+.model-section { margin-top: 28px; }
+.model-title { font-size: 20px; margin: 0 0 6px; }
+.model-desc { margin: 0 0 14px; color: var(--muted); font-size: 14px; line-height: 1.8; }
+.model-stage {
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: linear-gradient(160deg, #eef6ff, #dcebff);
+  border: 1px solid var(--blue-100);
+  box-shadow: var(--shadow);
+}
+model-viewer.joint-model {
+  width: 100%;
+  height: 440px;
+  display: block;
+  --poster-color: transparent;
+  background: transparent;
+}
+.model-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 16px;
+  border-top: 1px solid var(--blue-100);
+  background: #f7fbff;
+}
+.ghost-btn {
+  flex: 1 1 200px;
+  padding: 12px 16px;
+  border: 1px solid var(--blue-600);
+  background: #fff;
+  color: var(--blue-700);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.ghost-btn:hover { background: var(--blue-600); color: #fff; }
+.model-note { margin: 10px 2px 0; color: var(--muted); font-size: 13px; line-height: 1.7; }
+
 /* =========================================================
    页 4：后台管理
    ========================================================= */
@@ -480,6 +521,11 @@ tbody tr:hover { background: var(--blue-50); }
     font-weight: 700; color: var(--blue-900); text-align: left;
     flex: 0 0 auto; margin-right: auto;
   }
+
+  /* 3D 模型查看器：手机降低高度，避免占据过半屏 */
+  model-viewer.joint-model { height: 320px; }
+  .model-title { font-size: 18px; }
+  .ghost-btn { flex-basis: 100%; }
 }
 
 @media (min-width: 768px) {

@@ -10,6 +10,7 @@
   <meta property="og:type" content="website">
   <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
   <link rel="stylesheet" href="assets/css/style.css">
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 </head>
 <body>
   <header class="site-header">
@@ -44,6 +45,31 @@
         <button class="hotspot cartilage" data-modal="cartilageModal" aria-haspopup="dialog">软骨 / 骨组织</button>
         <div class="hint">示意：关节剖面 · 点击圆形热区查看讲解</div>
       </div>
+
+      <section class="model-section" aria-labelledby="modelTitle">
+        <h2 id="modelTitle" class="model-title">3D 关节结构（可旋转查看）</h2>
+        <p class="model-desc">下方为关节结构的 3D 示意模型，可用鼠标拖动旋转、滚轮缩放；点击两个热区按钮可查看「滑膜」与「软骨 / 骨组织」的讲解。</p>
+        <div class="model-stage">
+          <model-viewer
+            class="joint-model"
+            src="assets/models/joint.glb"
+            poster="assets/models/joint_preview.png"
+            alt="关节 3D 结构示意模型"
+            camera-controls
+            auto-rotate
+            rotation-per-second="18deg"
+            shadow-intensity="1"
+            environment-image="neutral"
+            exposure="1.1"
+            loading="eager">
+          </model-viewer>
+          <div class="model-controls">
+            <button class="ghost-btn" data-modal="synoviumModal" type="button">查看「滑膜」讲解</button>
+            <button class="ghost-btn" data-modal="cartilageModal" type="button">查看「软骨 / 骨组织」讲解</button>
+          </div>
+        </div>
+        <p class="model-note">* 3D 模型为 AI 生成的科普示意结构，仅用于帮助理解，不具临床精确性；具体诊疗请遵医嘱。</p>
+      </section>
 
       <ul style="margin-top:18px;color:var(--muted);font-size:14px;line-height:1.9;">
         <li><strong style="color:var(--blue-900);">滑膜</strong>：关节内壁的薄膜，正常时分泌滑液润滑关节。</li>
