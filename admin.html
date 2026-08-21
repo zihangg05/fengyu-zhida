@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>管理后台 · 风语智答｜风湿免疫病智能科普患教平台</title>
-  <meta name="description" content="风语智答管理后台演示：知识库管理与对话日志查看（交互原型 Demo）。">
+  <meta name="description" content="风语智答管理后台演示：知识库管理、对话日志与概览统计（交互原型 Demo）。">
   <meta property="og:title" content="风语智答 · 管理后台">
-  <meta property="og:description" content="知识库与对话日志管理演示（原型）">
+  <meta property="og:description" content="知识库、对话日志与概览统计管理演示（原型）">
   <meta property="og:type" content="website">
   <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
   <link rel="stylesheet" href="assets/css/style.css">
@@ -35,8 +35,28 @@
       <div class="section-head">
         <span class="eyebrow">管理后台</span>
         <h1>知识库与对话日志</h1>
-        <p>管理科普知识条目与查看对话日志。本页为交互原型演示，数据均为示例。</p>
+        <p>管理科普知识条目、查看对话日志与概览统计。本页为交互原型演示，数据均为示例。</p>
       </div>
+
+      <!-- 概览统计 -->
+      <section class="stat-grid" aria-label="概览统计">
+        <div class="stat">
+          <div class="n">4</div>
+          <div class="l">知识条目总数</div>
+        </div>
+        <div class="stat">
+          <div class="n">3</div>
+          <div class="l">已发布</div>
+        </div>
+        <div class="stat">
+          <div class="n">1</div>
+          <div class="l">待审核</div>
+        </div>
+        <div class="stat">
+          <div class="n">2</div>
+          <div class="l">今日高风险日志</div>
+        </div>
+      </section>
 
       <section class="card">
         <div class="toolbar">
@@ -49,10 +69,38 @@
               <tr><th>编号</th><th>分类</th><th>科普标题</th><th>更新时间</th><th>状态</th><th>操作</th></tr>
             </thead>
             <tbody>
-              <tr><td>K001</td><td>类风湿关节炎</td><td>类风湿因子升高说明什么</td><td>2026-08-12</td><td><span class="badge ok">已发布</span></td><td><button class="link-btn" type="button">编辑</button></td></tr>
-              <tr><td>K002</td><td>红斑狼疮</td><td>蝶形红斑是什么表现</td><td>2026-08-10</td><td><span class="badge ok">已发布</span></td><td><button class="link-btn" type="button">编辑</button></td></tr>
-              <tr><td>K003</td><td>强直性脊柱炎</td><td>晨僵与腰痛如何区分</td><td>2026-08-08</td><td><span class="badge warn">待审核</span></td><td><button class="link-btn" type="button">编辑</button></td></tr>
-              <tr><td>K004</td><td>痛风</td><td>尿酸高一定要吃药吗</td><td>2026-08-05</td><td><span class="badge ok">已发布</span></td><td><button class="link-btn" type="button">编辑</button></td></tr>
+              <tr>
+                <td data-label="编号">K001</td>
+                <td data-label="分类">类风湿关节炎</td>
+                <td data-label="科普标题">类风湿因子升高说明什么</td>
+                <td data-label="更新时间">2026-08-12</td>
+                <td data-label="状态"><span class="badge ok">已发布</span></td>
+                <td data-label="操作"><button class="link-btn" type="button">编辑</button></td>
+              </tr>
+              <tr>
+                <td data-label="编号">K002</td>
+                <td data-label="分类">红斑狼疮</td>
+                <td data-label="科普标题">蝶形红斑是什么表现</td>
+                <td data-label="更新时间">2026-08-10</td>
+                <td data-label="状态"><span class="badge ok">已发布</span></td>
+                <td data-label="操作"><button class="link-btn" type="button">编辑</button></td>
+              </tr>
+              <tr>
+                <td data-label="编号">K003</td>
+                <td data-label="分类">强直性脊柱炎</td>
+                <td data-label="科普标题">晨僵与腰痛如何区分</td>
+                <td data-label="更新时间">2026-08-08</td>
+                <td data-label="状态"><span class="badge warn">待审核</span></td>
+                <td data-label="操作"><button class="link-btn" type="button">编辑</button></td>
+              </tr>
+              <tr>
+                <td data-label="编号">K004</td>
+                <td data-label="分类">痛风</td>
+                <td data-label="科普标题">尿酸高一定要吃药吗</td>
+                <td data-label="更新时间">2026-08-05</td>
+                <td data-label="状态"><span class="badge ok">已发布</span></td>
+                <td data-label="操作"><button class="link-btn" type="button">编辑</button></td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -68,10 +116,34 @@
               <tr><th>日志ID</th><th>提问摘要</th><th>回复摘要</th><th>时间</th><th>风险标记</th></tr>
             </thead>
             <tbody>
-              <tr><td>L2401</td><td>类风湿因子偏高是否确诊</td><td>说明 RF 意义并建议就诊</td><td>2026-08-20 09:12</td><td><span class="badge risk">高风险</span></td></tr>
-              <tr><td>L2402</td><td>红斑狼疮会遗传吗</td><td>科普遗传倾向，建议面诊</td><td>2026-08-20 10:03</td><td><span class="badge ok">正常</span></td></tr>
-              <tr><td>L2403</td><td>怎么缓解晨僵</td><td>科普热身与就医建议</td><td>2026-08-20 11:27</td><td><span class="badge ok">正常</span></td></tr>
-              <tr><td>L2404</td><td>自行调整用药剂量</td><td>拒答并提示遵医嘱</td><td>2026-08-20 14:48</td><td><span class="badge risk">高风险</span></td></tr>
+              <tr>
+                <td data-label="日志ID">L2401</td>
+                <td data-label="提问摘要">类风湿因子偏高是否确诊</td>
+                <td data-label="回复摘要">说明 RF 意义并建议就诊</td>
+                <td data-label="时间">2026-08-20 09:12</td>
+                <td data-label="风险标记"><span class="badge risk">高风险</span></td>
+              </tr>
+              <tr>
+                <td data-label="日志ID">L2402</td>
+                <td data-label="提问摘要">红斑狼疮会遗传吗</td>
+                <td data-label="回复摘要">科普遗传倾向，建议面诊</td>
+                <td data-label="时间">2026-08-20 10:03</td>
+                <td data-label="风险标记"><span class="badge ok">正常</span></td>
+              </tr>
+              <tr>
+                <td data-label="日志ID">L2403</td>
+                <td data-label="提问摘要">怎么缓解晨僵</td>
+                <td data-label="回复摘要">科普热身与就医建议</td>
+                <td data-label="时间">2026-08-20 11:27</td>
+                <td data-label="风险标记"><span class="badge ok">正常</span></td>
+              </tr>
+              <tr>
+                <td data-label="日志ID">L2404</td>
+                <td data-label="提问摘要">自行调整用药剂量</td>
+                <td data-label="回复摘要">拒答并提示遵医嘱</td>
+                <td data-label="时间">2026-08-20 14:48</td>
+                <td data-label="风险标记"><span class="badge risk">高风险</span></td>
+              </tr>
             </tbody>
           </table>
         </div>
