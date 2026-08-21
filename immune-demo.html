@@ -39,11 +39,19 @@
         <p>点击下方视频画面中的高亮热区，了解「滑膜」与「软骨 / 骨组织」的基本结构与作用。本演示为科普示意。</p>
       </div>
 
-      <div class="video-stage" role="img" aria-label="关节免疫机制演示视频（占位）">
-        <button class="play" aria-label="播放演示视频（占位）"></button>
+      <div class="video-stage">
+        <video
+          class="demo-video"
+          src="assets/videos/immune-mechanism.mp4"
+          controls
+          playsinline
+          preload="metadata"
+          aria-label="关节免疫机制科普演示视频">
+          您的浏览器不支持 HTML5 视频播放，请使用 Chrome / Edge / Safari 等现代浏览器查看。
+        </video>
         <button class="hotspot synovium" data-modal="synoviumModal" aria-haspopup="dialog">滑膜</button>
         <button class="hotspot cartilage" data-modal="cartilageModal" aria-haspopup="dialog">软骨 / 骨组织</button>
-        <div class="hint">示意：关节剖面 · 点击圆形热区查看讲解</div>
+        <div class="hint">AI 生成科普示意视频 · 点击圆形热区查看讲解</div>
       </div>
 
       <section class="model-section" aria-labelledby="modelTitle">

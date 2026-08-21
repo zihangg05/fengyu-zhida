@@ -296,9 +296,16 @@ h1, h2, h3, h4 { line-height: 1.25; color: var(--blue-900); margin: 0 0 .5em; }
   border-color: transparent transparent transparent var(--blue-600);
   margin-left: 6px;
 }
+.video-stage video.demo-video {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+  background: #0c2440;
+}
 .video-stage .hint {
-  position: absolute; left: 14px; bottom: 12px; right: 14px;
+  position: absolute; left: 14px; top: 12px; right: 14px;
   color: #cfe2ff; font-size: 13px; text-shadow: 0 1px 4px rgba(0,0,0,.5);
+  pointer-events: none;
 }
 .hotspot {
   position: absolute; width: 88px; height: 88px; transform: translate(-50%, -50%);
