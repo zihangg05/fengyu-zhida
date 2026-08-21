@@ -161,7 +161,7 @@
 
       <section class="model-section" aria-labelledby="modelTitle">
         <h2 id="modelTitle" class="model-title">3D 关节结构（可旋转查看）</h2>
-        <p class="model-desc">下方为关节结构的 3D 示意模型，可用鼠标拖动旋转、滚轮缩放；点击两个热区按钮可查看「滑膜」与「软骨 / 骨组织」的讲解。</p>
+        <p class="model-desc">下方为关节结构的 3D 示意模型，可用鼠标拖动旋转、滚轮缩放。图例配色与上方动画保持一致，点击图例或上方动画热区均可查看对应讲解。</p>
         <div class="model-stage">
           <model-viewer
             class="joint-model"
@@ -176,9 +176,17 @@
             exposure="1.1"
             loading="eager">
           </model-viewer>
-          <div class="model-controls">
-            <button class="ghost-btn" data-modal="synoviumModal" type="button">查看「滑膜」讲解</button>
-            <button class="ghost-btn" data-modal="cartilageModal" type="button">查看「软骨 / 骨组织」讲解</button>
+          <div class="model-legend" aria-label="关节结构图例（与上方动画配色一致）">
+            <button class="legend-item" data-modal="synoviumModal" type="button" aria-haspopup="dialog">
+              <span class="swatch swatch-syn" aria-hidden="true"></span>滑膜
+            </button>
+            <button class="legend-item" data-modal="cartilageModal" type="button" aria-haspopup="dialog">
+              <span class="swatch swatch-car" aria-hidden="true"></span>软骨
+            </button>
+            <span class="legend-item legend-static">
+              <span class="swatch swatch-bone" aria-hidden="true"></span>骨组织
+            </span>
+            <span class="legend-note">与上方动画同色系 · 点击滑膜 / 软骨图例可查看讲解</span>
           </div>
         </div>
         <p class="model-note">* 3D 模型为 AI 生成的科普示意结构，仅用于帮助理解，不具临床精确性；具体诊疗请遵医嘱。</p>

@@ -378,27 +378,36 @@ model-viewer.joint-model {
   --poster-color: transparent;
   background: transparent;
 }
-.model-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+/* 3D 区结构图例：与上方动画同色系，替代重复的讲解按钮 */
+.model-legend {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: 10px 12px;
   padding: 14px 16px;
   border-top: 1px solid var(--blue-100);
   background: #f7fbff;
 }
-.ghost-btn {
-  flex: 1 1 200px;
-  padding: 12px 16px;
-  border: 1px solid var(--blue-600);
-  background: #fff;
-  color: var(--blue-700);
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background .15s, color .15s;
+.legend-item {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #fff; border: 1px solid var(--blue-200);
+  border-radius: 999px; padding: 7px 16px 7px 11px;
+  color: var(--ink); font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: background .15s, border-color .15s, transform .12s;
 }
-.ghost-btn:hover { background: var(--blue-600); color: #fff; }
+.legend-item:hover { background: var(--blue-50); border-color: var(--blue-500); }
+.legend-item:active { transform: translateY(1px); }
+.legend-item.legend-static {
+  cursor: default; color: var(--muted);
+  background: transparent; border-style: dashed;
+}
+.legend-item.legend-static:hover { background: transparent; border-color: var(--blue-200); }
+.legend-item .swatch {
+  width: 14px; height: 14px; flex: 0 0 14px; border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgba(30, 111, 217, .18);
+}
+.swatch-syn  { background: #FF9B9B; }                       /* 滑膜（同动画） */
+.swatch-car  { background: #62C9DC; }                       /* 软骨（同动画） */
+.swatch-bone { background: linear-gradient(180deg, #EDF4FC, #B7CDE2); } /* 骨组织 */
+.legend-note { margin-left: auto; color: var(--muted); font-size: 12px; }
 .model-note { margin: 10px 2px 0; color: var(--muted); font-size: 13px; line-height: 1.7; }
 
 /* =========================================================
@@ -571,7 +580,8 @@ tbody tr:hover { background: var(--blue-50); }
   /* 3D 模型查看器：手机降低高度，避免占据过半屏 */
   model-viewer.joint-model { height: 320px; }
   .model-title { font-size: 18px; }
-  .ghost-btn { flex-basis: 100%; }
+  /* 图例说明在手机上换行独占一行 */
+  .legend-note { flex-basis: 100%; margin-left: 0; }
 }
 
 @media (min-width: 768px) {
