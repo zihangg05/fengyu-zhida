@@ -365,6 +365,7 @@ h1, h2, h3, h4 { line-height: 1.25; color: var(--blue-900); margin: 0 0 .5em; }
 .model-title { font-size: 20px; margin: 0 0 6px; }
 .model-desc { margin: 0 0 14px; color: var(--muted); font-size: 14px; line-height: 1.8; }
 .model-stage {
+  position: relative;
   border-radius: var(--radius);
   overflow: hidden;
   background: linear-gradient(160deg, #eef6ff, #dcebff);
@@ -377,6 +378,33 @@ model-viewer.joint-model {
   display: block;
   --poster-color: transparent;
   background: transparent;
+}
+/* 3D 模型加载指示 / 失败提示层 */
+.model-loading {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(12, 36, 64, .72);
+  color: #cfe2ff;
+  font-size: 13px; font-weight: 600;
+  pointer-events: none;
+  z-index: 2;
+}
+.model-loading .spin {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid rgba(207, 226, 255, .35);
+  border-top-color: #9cc8ff;
+  animation: mspin .9s linear infinite;
+  flex: none;
+}
+@keyframes mspin { to { transform: rotate(360deg); } }
+.model-loading.is-error {
+  background: rgba(178, 44, 44, .88);
+  color: #fff;
+  animation: none;
 }
 /* 3D 区结构图例：与上方动画同色系，替代重复的讲解按钮 */
 .model-legend {

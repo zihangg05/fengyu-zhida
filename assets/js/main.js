@@ -143,6 +143,29 @@
     });
   }
 
+  /* ---------- 3D 模型加载指示 / 容错 ---------- */
+  function initModelViewer() {
+    var mv = document.querySelector("model-viewer.joint-model");
+    if (!mv) return;
+    var stage = mv.closest(".model-stage") || mv.parentElement;
+    if (!stage) return;
+    var overlay = document.createElement("div");
+    overlay.className = "model-loading";
+    overlay.innerHTML =
+      '<span class="spin" aria-hidden="true"></span>正在加载 3D 模型，稍候即可拖动旋转…';
+    stage.appendChild(overlay);
+
+    var dismiss = function () {
+      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    };
+    if (mv.loaded) { dismiss(); return; }
+    mv.addEventListener("load", dismiss, { once: true });
+    mv.addEventListener("error", function () {
+      overlay.classList.add("is-error");
+      overlay.innerHTML = "3D 模型加载失败，请检查网络后刷新重试。";
+    }, { once: true });
+  }
+
   /* ---------- 启动 ---------- */
   document.addEventListener("DOMContentLoaded", function () {
     initNav();
@@ -151,6 +174,7 @@
     initLabUpload();
     initExportCsv();
     initImmuneHotspots();
+    initModelViewer();
   });
 
   // 暴露给内联调用（如发送按钮跳转）

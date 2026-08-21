@@ -161,7 +161,7 @@
 
       <section class="model-section" aria-labelledby="modelTitle">
         <h2 id="modelTitle" class="model-title">3D 关节结构（可旋转查看）</h2>
-        <p class="model-desc">下方为关节结构的 3D 示意模型，可用鼠标拖动旋转、滚轮缩放。图例配色与上方动画保持一致，点击图例或上方动画热区均可查看对应讲解。</p>
+        <p class="model-desc">下方为关节结构的 3D 示意模型，加载完成后即可用鼠标 / 手指拖动旋转、滚轮或双指缩放。图例配色与上方动画保持一致，点击图例或上方动画热区均可查看对应讲解。</p>
         <div class="model-stage">
           <model-viewer
             class="joint-model"
@@ -174,7 +174,9 @@
             shadow-intensity="1"
             environment-image="neutral"
             exposure="1.1"
-            loading="eager">
+            loading="eager"
+            progress-bar
+            interaction-prompt="auto">
           </model-viewer>
           <div class="model-legend" aria-label="关节结构图例（与上方动画配色一致）">
             <button class="legend-item" data-modal="synoviumModal" type="button" aria-haspopup="dialog">
