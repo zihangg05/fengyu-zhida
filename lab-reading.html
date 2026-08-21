@@ -10,7 +10,6 @@
   <meta property="og:type" content="website">
   <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
   <link rel="stylesheet" href="assets/css/style.css">
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 </head>
 <body>
   <header class="site-header">
@@ -38,27 +37,6 @@
         <h1>上传化验单，查看科普解读</h1>
         <p>上传一张化验单图片（演示），系统将模拟展示指标解读与科普说明。本功能为原型演示，解读结果不具医疗效力。</p>
       </div>
-
-      <section class="model-section" aria-labelledby="lab3dTitle">
-        <h2 id="lab3dTitle" class="model-title">3D 化验样本示意</h2>
-        <p class="model-desc">下方为血液样本的 3D 示意模型，可拖动旋转、滚轮缩放，帮助直观理解化验单所涉及的样本。</p>
-        <div class="model-stage">
-          <model-viewer
-            class="joint-model"
-            src="assets/models/lab.glb"
-            poster="assets/models/lab_preview.png"
-            alt="血液样本 3D 示意模型"
-            camera-controls
-            auto-rotate
-            rotation-per-second="18deg"
-            shadow-intensity="1"
-            environment-image="neutral"
-            exposure="1.1"
-            loading="eager">
-          </model-viewer>
-        </div>
-        <p class="model-note">* 3D 模型为 AI 生成的科普示意，不具临床精确性；真实化验请以检验报告为准。</p>
-      </section>
 
       <!-- 状态 1：上传 -->
       <div id="uploadState">

@@ -10,7 +10,6 @@
   <meta property="og:type" content="website">
   <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
   <link rel="stylesheet" href="assets/css/style.css">
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 </head>
 <body>
   <header class="site-header">
@@ -38,29 +37,6 @@
         <h1>健康科普，有问有答</h1>
         <p style="margin:0 auto;">输入您的疑问，获取风湿免疫病相关的科普解读与参考来源。所有内容仅为科普演示，不构成医疗建议。</p>
       </div>
-
-      <section class="model-section" aria-label="3D 科普助手">
-        <div class="model-stage">
-          <model-viewer
-            class="joint-model"
-            src="assets/models/home.glb"
-            poster="assets/models/home_preview.png"
-            alt="风语智答 3D 科普助手"
-            camera-controls
-            auto-rotate
-            rotation-per-second="18deg"
-            shadow-intensity="1"
-            environment-image="neutral"
-            exposure="1.1"
-            loading="eager">
-          </model-viewer>
-          <div class="model-controls">
-            <a class="ghost-btn" href="immune-demo.html" type="button">看 3D 免疫机制演示</a>
-            <a class="ghost-btn" href="lab-reading.html" type="button">去化验单解读</a>
-          </div>
-        </div>
-        <p class="model-note">* 3D 形象为 AI 生成的科普示意，用于帮助理解，不具临床精确性。</p>
-      </section>
 
       <div class="qa-wrap">
         <section class="chat" aria-label="对话区域">
