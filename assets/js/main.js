@@ -245,12 +245,180 @@
       t.classList.remove("show");
     }, 3000);
   }
-  function initExportCsv() {
-    var btn = document.getElementById("exportCsv");
-    if (!btn) return;
-    btn.addEventListener("click", function () {
-      showToast("日志导出成功，CSV 文件已生成");
+  /* ---------- 5. 管理后台：数据驱动 + 真交互（页 4） ---------- */
+  function initAdmin() {
+    var kbBody = document.getElementById("kbBody");
+    if (!kbBody) return; // 非后台页
+
+    var DATA = { knowledge: [], logs: [] };
+    var kbSearch = document.getElementById("kbSearch");
+    var logRisk = document.getElementById("logRisk");
+    var kbEmpty = document.getElementById("kbEmpty");
+    var logEmpty = document.getElementById("logEmpty");
+
+    function statusBadge(s) {
+      if (s === "pending") return '<span class="badge warn">待审核</span>';
+      return '<span class="badge ok">已发布</span>';
+    }
+    function riskBadge(r) {
+      if (r === "high") return '<span class="badge risk">高风险</span>';
+      return '<span class="badge ok">正常</span>';
+    }
+    function todayStr() {
+      var d = new Date();
+      var p = function (n) { return (n < 10 ? "0" : "") + n; };
+      return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+    }
+
+    /* —— 渲染：概览统计（自动计算） —— */
+    function renderStats() {
+      var k = DATA.knowledge, l = DATA.logs;
+      var published = k.filter(function (x) { return x.status === "published"; }).length;
+      var pending = k.filter(function (x) { return x.status === "pending"; }).length;
+      var risk = l.filter(function (x) { return x.risk === "high"; }).length;
+      var map = { total: k.length, published: published, pending: pending, risk: risk };
+      document.querySelectorAll("[data-stat]").forEach(function (el) {
+        el.textContent = map[el.getAttribute("data-stat")];
+      });
+    }
+
+    /* —— 渲染：知识库表格（支持搜索） —— */
+    function renderKnowledge() {
+      var q = (kbSearch && kbSearch.value || "").trim().toLowerCase();
+      var rows = DATA.knowledge.filter(function (x) {
+        if (!q) return true;
+        return (x.title + " " + x.category).toLowerCase().indexOf(q) >= 0;
+      });
+      if (kbEmpty) kbEmpty.hidden = rows.length > 0;
+      kbBody.innerHTML = rows.map(function (x) {
+        return "<tr>" +
+          '<td data-label="编号">' + esc(x.id) + "</td>" +
+          '<td data-label="分类">' + esc(x.category) + "</td>" +
+          '<td data-label="科普标题">' + esc(x.title) + "</td>" +
+          '<td data-label="更新时间">' + esc(x.updated) + "</td>" +
+          '<td data-label="状态">' + statusBadge(x.status) + "</td>" +
+          '<td data-label="操作"><button class="link-btn kb-edit" type="button" data-id="' + esc(x.id) + '">编辑</button></td>' +
+          "</tr>";
+      }).join("");
+    }
+
+    /* —— 渲染：对话日志（支持风险筛选） —— */
+    function renderLogs() {
+      var r = (logRisk && logRisk.value) || "all";
+      var rows = DATA.logs.filter(function (x) { return r === "all" || x.risk === r; });
+      if (logEmpty) logEmpty.hidden = rows.length > 0;
+      document.getElementById("logBody").innerHTML = rows.map(function (x) {
+        return "<tr>" +
+          '<td data-label="日志ID">' + esc(x.id) + "</td>" +
+          '<td data-label="提问摘要">' + esc(x.question) + "</td>" +
+          '<td data-label="回复摘要">' + esc(x.answer) + "</td>" +
+          '<td data-label="时间">' + esc(x.time) + "</td>" +
+          '<td data-label="风险标记">' + riskBadge(x.risk) + "</td>" +
+          "</tr>";
+      }).join("");
+    }
+
+    function renderAll() { renderStats(); renderKnowledge(); renderLogs(); }
+
+    /* —— 编辑：打开弹窗并回填 —— */
+    document.addEventListener("click", function (e) {
+      var b = e.target.closest(".kb-edit");
+      if (!b) return;
+      var id = b.getAttribute("data-id");
+      var item = DATA.knowledge.filter(function (x) { return x.id === id; })[0];
+      if (!item) return;
+      document.getElementById("editId").value = item.id;
+      document.getElementById("editCategory").value = item.category;
+      document.getElementById("editTitleInput").value = item.title;
+      document.getElementById("editContent").value = item.content;
+      document.getElementById("editStatus").value = item.status;
+      openModal("editModal");
     });
+
+    var editForm = document.getElementById("editForm");
+    editForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var id = document.getElementById("editId").value;
+      var item = DATA.knowledge.filter(function (x) { return x.id === id; })[0];
+      if (!item) return;
+      item.category = document.getElementById("editCategory").value.trim() || item.category;
+      item.title = document.getElementById("editTitleInput").value.trim() || item.title;
+      item.content = document.getElementById("editContent").value.trim();
+      item.status = document.getElementById("editStatus").value;
+      item.updated = todayStr();
+      renderAll();
+      closeModal(document.getElementById("editModal"));
+      showToast("已保存修改：" + item.title);
+    });
+
+    /* —— 新增：创建条目 —— */
+    var addForm = document.getElementById("addForm");
+    addForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var maxNum = DATA.knowledge.reduce(function (m, x) {
+        var n = parseInt(String(x.id).replace(/\D/g, ""), 10);
+        return isNaN(n) ? m : Math.max(m, n);
+      }, 0);
+      var item = {
+        id: "K" + ("00" + (maxNum + 1)).slice(-3),
+        category: document.getElementById("addCategory").value.trim() || "未分类",
+        title: document.getElementById("addTitleInput").value.trim() || "未命名条目",
+        content: document.getElementById("addContent").value.trim(),
+        updated: todayStr(),
+        status: document.getElementById("addStatus").value
+      };
+      DATA.knowledge.unshift(item);
+      addForm.reset();
+      renderAll();
+      closeModal(document.getElementById("addModal"));
+      showToast("已新增条目：" + item.title);
+    });
+
+    /* —— 弹窗内「取消」按钮 —— */
+    document.addEventListener("click", function (e) {
+      if (e.target.closest("[data-close]")) {
+        var m = e.target.closest(".modal");
+        if (m) closeModal(m);
+      }
+    });
+
+    /* —— 搜索 / 筛选 —— */
+    if (kbSearch) kbSearch.addEventListener("input", renderKnowledge);
+    if (logRisk) logRisk.addEventListener("change", renderLogs);
+
+    /* —— 导出 CSV（真实下载） —— */
+    var exportBtn = document.getElementById("exportCsv");
+    exportBtn.addEventListener("click", function () {
+      var header = ["编号", "分类", "科普标题", "更新时间", "状态"];
+      var rows = DATA.knowledge.map(function (x) {
+        return [x.id, x.category, x.title, x.updated, x.status === "pending" ? "待审核" : "已发布"];
+      });
+      var csv = [header].concat(rows).map(function (r) {
+        return r.map(function (c) {
+          var s = String(c == null ? "" : c);
+          return '"' + s.replace(/"/g, '""') + '"';
+        }).join(",");
+      }).join("\r\n");
+      var blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "fengyu-knowledge-" + todayStr() + ".csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast("已导出 " + DATA.knowledge.length + " 条知识库为 CSV");
+    });
+
+    /* —— 拉取数据并首次渲染 —— */
+    fetch("assets/data/admin.json")
+      .then(function (r) { return r.json(); })
+      .then(function (d) { DATA = d; renderAll(); })
+      .catch(function () {
+        kbBody.innerHTML = '<tr><td colspan="6" style="color:var(--danger);">知识库数据加载失败，请刷新重试。</td></tr>';
+        showToast("数据加载失败");
+      });
   }
 
   /* ---------- 6. 免疫动画热区联动（页 3） ---------- */
@@ -419,7 +587,7 @@
     initActiveNav();
     initModals();
     initLabReader();
-    initExportCsv();
+    initAdmin();
     initImmuneHotspots();
     initModelViewer();
     initQA();

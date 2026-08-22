@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>管理后台 · 风语智答｜风湿免疫病智能科普患教平台</title>
-  <meta name="description" content="风语智答管理后台演示：知识库管理、对话日志与概览统计（交互原型 Demo）。">
+  <meta name="description" content="风语智答管理后台：知识库管理、对话日志与概览统计（交互原型，数据来自本地 JSON）。">
   <meta property="og:title" content="风语智答 · 管理后台">
-  <meta property="og:description" content="知识库、对话日志与概览统计管理演示（原型）">
+  <meta property="og:description" content="知识库、对话日志与概览统计管理（交互原型）">
   <meta property="og:type" content="website">
   <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
   <link rel="stylesheet" href="assets/css/style.css">
@@ -35,73 +35,33 @@
       <div class="section-head">
         <span class="eyebrow">管理后台</span>
         <h1>知识库与对话日志</h1>
-        <p>管理科普知识条目、查看对话日志与概览统计。本页为交互原型演示，数据均为示例。</p>
+        <p>管理科普知识条目、查看对话日志与概览统计。数据来自本地 JSON，可在页面内新增 / 编辑 / 搜索 / 导出（演示为前端交互，不落库）。</p>
       </div>
 
-      <!-- 概览统计 -->
-      <section class="stat-grid" aria-label="概览统计">
-        <div class="stat">
-          <div class="n">4</div>
-          <div class="l">知识条目总数</div>
-        </div>
-        <div class="stat">
-          <div class="n">3</div>
-          <div class="l">已发布</div>
-        </div>
-        <div class="stat">
-          <div class="n">1</div>
-          <div class="l">待审核</div>
-        </div>
-        <div class="stat">
-          <div class="n">2</div>
-          <div class="l">今日高风险日志</div>
-        </div>
+      <!-- 概览统计：由数据自动计算 -->
+      <section class="stat-grid" id="statGrid" aria-label="概览统计">
+        <div class="stat"><div class="n" data-stat="total">–</div><div class="l">知识条目总数</div></div>
+        <div class="stat"><div class="n" data-stat="published">–</div><div class="l">已发布</div></div>
+        <div class="stat"><div class="n" data-stat="pending">–</div><div class="l">待审核</div></div>
+        <div class="stat"><div class="n" data-stat="risk">–</div><div class="l">高风险日志</div></div>
       </section>
 
       <section class="card">
         <div class="toolbar">
           <h2>知识库管理</h2>
-          <button class="btn btn-ghost" id="exportCsv" type="button">导出 CSV</button>
+          <div class="toolbar-actions">
+            <input type="search" id="kbSearch" class="field field-search" placeholder="搜索标题 / 分类…" aria-label="搜索知识库">
+            <button class="btn btn-ghost" id="exportCsv" type="button">导出 CSV</button>
+            <button class="btn btn-primary" data-modal="addModal" type="button">＋ 新增条目</button>
+          </div>
         </div>
+        <p class="empty-hint" id="kbEmpty" hidden>没有匹配的知识条目。</p>
         <div class="table-wrap">
           <table>
             <thead>
               <tr><th>编号</th><th>分类</th><th>科普标题</th><th>更新时间</th><th>状态</th><th>操作</th></tr>
             </thead>
-            <tbody>
-              <tr>
-                <td data-label="编号">K001</td>
-                <td data-label="分类">类风湿关节炎</td>
-                <td data-label="科普标题">类风湿因子升高说明什么</td>
-                <td data-label="更新时间">2026-08-12</td>
-                <td data-label="状态"><span class="badge ok">已发布</span></td>
-                <td data-label="操作"><button class="link-btn" type="button">编辑</button></td>
-              </tr>
-              <tr>
-                <td data-label="编号">K002</td>
-                <td data-label="分类">红斑狼疮</td>
-                <td data-label="科普标题">蝶形红斑是什么表现</td>
-                <td data-label="更新时间">2026-08-10</td>
-                <td data-label="状态"><span class="badge ok">已发布</span></td>
-                <td data-label="操作"><button class="link-btn" type="button">编辑</button></td>
-              </tr>
-              <tr>
-                <td data-label="编号">K003</td>
-                <td data-label="分类">强直性脊柱炎</td>
-                <td data-label="科普标题">晨僵与腰痛如何区分</td>
-                <td data-label="更新时间">2026-08-08</td>
-                <td data-label="状态"><span class="badge warn">待审核</span></td>
-                <td data-label="操作"><button class="link-btn" type="button">编辑</button></td>
-              </tr>
-              <tr>
-                <td data-label="编号">K004</td>
-                <td data-label="分类">痛风</td>
-                <td data-label="科普标题">尿酸高一定要吃药吗</td>
-                <td data-label="更新时间">2026-08-05</td>
-                <td data-label="状态"><span class="badge ok">已发布</span></td>
-                <td data-label="操作"><button class="link-btn" type="button">编辑</button></td>
-              </tr>
-            </tbody>
+            <tbody id="kbBody"></tbody>
           </table>
         </div>
       </section>
@@ -109,42 +69,24 @@
       <section class="card">
         <div class="toolbar">
           <h2>对话日志</h2>
+          <div class="toolbar-actions">
+            <label class="field-inline">
+              风险
+              <select id="logRisk" class="field field-select" aria-label="按风险筛选">
+                <option value="all">全部</option>
+                <option value="high">高风险</option>
+                <option value="normal">正常</option>
+              </select>
+            </label>
+          </div>
         </div>
+        <p class="empty-hint" id="logEmpty" hidden>没有匹配的对话日志。</p>
         <div class="table-wrap">
           <table>
             <thead>
               <tr><th>日志ID</th><th>提问摘要</th><th>回复摘要</th><th>时间</th><th>风险标记</th></tr>
             </thead>
-            <tbody>
-              <tr>
-                <td data-label="日志ID">L2401</td>
-                <td data-label="提问摘要">类风湿因子偏高是否确诊</td>
-                <td data-label="回复摘要">说明 RF 意义并建议就诊</td>
-                <td data-label="时间">2026-08-20 09:12</td>
-                <td data-label="风险标记"><span class="badge risk">高风险</span></td>
-              </tr>
-              <tr>
-                <td data-label="日志ID">L2402</td>
-                <td data-label="提问摘要">红斑狼疮会遗传吗</td>
-                <td data-label="回复摘要">科普遗传倾向，建议面诊</td>
-                <td data-label="时间">2026-08-20 10:03</td>
-                <td data-label="风险标记"><span class="badge ok">正常</span></td>
-              </tr>
-              <tr>
-                <td data-label="日志ID">L2403</td>
-                <td data-label="提问摘要">怎么缓解晨僵</td>
-                <td data-label="回复摘要">科普热身与就医建议</td>
-                <td data-label="时间">2026-08-20 11:27</td>
-                <td data-label="风险标记"><span class="badge ok">正常</span></td>
-              </tr>
-              <tr>
-                <td data-label="日志ID">L2404</td>
-                <td data-label="提问摘要">自行调整用药剂量</td>
-                <td data-label="回复摘要">拒答并提示遵医嘱</td>
-                <td data-label="时间">2026-08-20 14:48</td>
-                <td data-label="风险标记"><span class="badge risk">高风险</span></td>
-              </tr>
-            </tbody>
+            <tbody id="logBody"></tbody>
           </table>
         </div>
       </section>
@@ -154,6 +96,81 @@
   <footer class="disclaimer">
     <p>⚠ 全部内容仅为科普参考，不构成任何专业建议，不能替代医师面诊，身体异常请前往医院专科就诊。</p>
   </footer>
+
+  <!-- 编辑知识条目弹窗 -->
+  <div class="modal" id="editModal" role="dialog" aria-modal="true" aria-labelledby="editTitle" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <h3 id="editTitle">编辑知识条目</h3>
+        <button class="modal-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="editForm" class="admin-form">
+          <input type="hidden" id="editId">
+          <label class="field-row">
+            <span class="field-label">分类</span>
+            <input type="text" id="editCategory" class="field" required>
+          </label>
+          <label class="field-row">
+            <span class="field-label">科普标题</span>
+            <input type="text" id="editTitleInput" class="field" required>
+          </label>
+          <label class="field-row">
+            <span class="field-label">正文</span>
+            <textarea id="editContent" class="field field-area" rows="5" required></textarea>
+          </label>
+          <label class="field-row">
+            <span class="field-label">状态</span>
+            <select id="editStatus" class="field field-select">
+              <option value="published">已发布</option>
+              <option value="pending">待审核</option>
+            </select>
+          </label>
+          <div class="form-actions">
+            <button type="button" class="btn btn-ghost" data-close>取消</button>
+            <button type="submit" class="btn btn-primary">保存修改</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增知识条目弹窗 -->
+  <div class="modal" id="addModal" role="dialog" aria-modal="true" aria-labelledby="addTitle" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <h3 id="addTitle">新增知识条目</h3>
+        <button class="modal-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="addForm" class="admin-form">
+          <label class="field-row">
+            <span class="field-label">分类</span>
+            <input type="text" id="addCategory" class="field" placeholder="如：类风湿关节炎" required>
+          </label>
+          <label class="field-row">
+            <span class="field-label">科普标题</span>
+            <input type="text" id="addTitleInput" class="field" placeholder="一句话科普标题" required>
+          </label>
+          <label class="field-row">
+            <span class="field-label">正文</span>
+            <textarea id="addContent" class="field field-area" rows="5" placeholder="科普正文内容" required></textarea>
+          </label>
+          <label class="field-row">
+            <span class="field-label">状态</span>
+            <select id="addStatus" class="field field-select">
+              <option value="published">已发布</option>
+              <option value="pending">待审核</option>
+            </select>
+          </label>
+          <div class="form-actions">
+            <button type="button" class="btn btn-ghost" data-close>取消</button>
+            <button type="submit" class="btn btn-primary">创建条目</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <script src="assets/js/main.js"></script>
 </body>

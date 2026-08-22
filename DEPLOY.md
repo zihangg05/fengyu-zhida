@@ -1,21 +1,21 @@
 # 风语智答 · 部署与运维手册（DEPLOY.md）
 
-> 风湿免疫科普响应式静态站。本文档汇总「改完代码怎么上线」「化验单解读后端怎么部署」「3D 模型/问答数据怎么维护」等全部操作流程。
+> 风湿免疫科普响应式静态站。本文档汇总「改完代码怎么上线」「化验单解读后端怎么部署」「3D 模型/问答数据怎么维护」等全部操作流程。  
 > 最近更新：2026-08-23
 
 ---
 
 ## 一、项目概览
 
-| 项 | 内容 |
-| --- | --- |
-| 项目 | 风语智答（风湿免疫科普患教平台） |
-| 类型 | 纯静态站（HTML + CSS + 原生 JS，无前端框架） |
-| 本地路径 | `C:/Users/子航/WorkBuddy/2026-08-20-23-33-36/fengyu-zhida/` |
-| 仓库 | https://github.com/zihangg05/fengyu-zhida （`main` 分支） |
-| 线上地址 | https://zihangg05.github.io/fengyu-zhida/ |
-| 风格 | 浅蓝医疗风（`#E6F2FF` / `#1E6FD9`），移动优先，断点 640 / 768 / 860px |
-| 化验单解读后端 | 独立 Cloudflare Worker（见第五节） |
+| 项       | 内容                                                        |
+| ------- | --------------------------------------------------------- |
+| 项目      | 风语智答（风湿免疫科普患教平台）                                          |
+| 类型      | 纯静态站（HTML + CSS + 原生 JS，无前端框架）                            |
+| 本地路径    | `C:/Users/子航/WorkBuddy/2026-08-20-23-33-36/fengyu-zhida/` |
+| 仓库      | <https://github.com/zihangg05/fengyu-zhida> （`main` 分支）   |
+| 线上地址    | <https://zihangg05.github.io/fengyu-zhida/>               |
+| 风格      | 浅蓝医疗风（`#E6F2FF` / `#1E6FD9`），移动优先，断点 640 / 768 / 860px    |
+| 化验单解读后端 | 独立 Cloudflare Worker（见第五节）                                |
 
 **核心约束**：GitHub Pages 是纯静态托管，**没有服务端运行时**。因此凡需要"服务端算"的能力（如调用视觉大模型看懂化验单）都必须拆到外部服务（本项目的 Cloudflare Worker）。站点前端代码里写 `/api/interpret` 必然 404，这是设计使然，不是 bug。
 
@@ -52,13 +52,13 @@ fengyu-zhida/
 
 ## 三、本地工具链
 
-| 工具 | 路径 / 安装方式 |
-| --- | --- |
-| Git | 系统自带 |
-| gh CLI | `C:/Program Files/GitHub CLI/gh.exe`（若已加入 PATH 可直接 `gh`） |
-| Python | `C:/Users/子航/.workbuddy/binaries/python/versions/3.13.12/python.exe` |
-| Node | `C:/Users/子航/.workbuddy/binaries/node/versions/22.22.2/node.exe` |
-| gltf-transform / wrangler | 装在 `C:/Users/子航/.workbuddy/binaries/node/workspace/node_modules` |
+| 工具                        | 路径 / 安装方式                                                            |
+| ------------------------- | -------------------------------------------------------------------- |
+| Git                       | 系统自带                                                                 |
+| gh CLI                    | `C:/Program Files/GitHub CLI/gh.exe`（若已加入 PATH 可直接 `gh`）             |
+| Python                    | `C:/Users/子航/.workbuddy/binaries/python/versions/3.13.12/python.exe` |
+| Node                      | `C:/Users/子航/.workbuddy/binaries/node/versions/22.22.2/node.exe`     |
+| gltf-transform / wrangler | 装在 `C:/Users/子航/.workbuddy/binaries/node/workspace/node_modules`     |
 
 > 提示：3D 模型压缩与 Worker 部署用到 Node 全局包，建议把上面的 `node_modules` 加进 `NODE_PATH`，或直接 `cd` 到该 workspace 目录执行。
 
@@ -78,6 +78,7 @@ git push origin main
 ```
 
 > ⚠️ `git push` 偶发 `github.com:443 Connection reset / Could not connect to server`（网络抖动）。按惯例用重试循环即可：
+>
 > ```bash
 > for i in 1 2 3 4 5; do git push origin main && break; sleep 3; done
 > ```
@@ -85,6 +86,7 @@ git push origin main
 ### 2. 自动部署
 
 `push` 到 `main` 会触发 `.github/workflows/deploy.yml`：
+
 - `actions/checkout@v7` 检出
 - `actions/configure-pages@v6` 开启 Pages（首次自动 enable）
 - `actions/upload-pages-artifact@v5` 把仓库根目录作为静态站点上传
@@ -100,7 +102,7 @@ curl -sI https://zihangg05.github.io/fengyu-zhida/assets/models/draco/draco_deco
 ```
 
 - 状态码 `200`、Content-Type 为 `application/wasm` 即正常。
-- 实际页面：浏览器打开 https://zihangg05.github.io/fengyu-zhida/ 走查交互。
+- 实际页面：浏览器打开 <https://zihangg05.github.io/fengyu-zhida/> 走查交互。
 
 ### 4. 本地预览（可选）
 
@@ -135,6 +137,7 @@ VISION_MODEL=gpt-4o-mini
 ```
 
 可选项（改 `VISION_API_BASE` / `VISION_MODEL` 即可换混元等）：
+
 - 腾讯混元视觉接口按 OpenAI 兼容格式对接时，把 `VISION_API_BASE` 指向其网关、`VISION_MODEL` 填对应模型名。
 
 ### 2. 安装并登录 wrangler
@@ -209,6 +212,8 @@ npx gltf-transform draco tmp.glb output.glb --method edgebreaker
 
 > 历史经验：原模型 27MB（纹理 23.5MB / 3 张 4096 PNG）→ 4.2 万面 + Draco + 1024 WebP → 264KB。
 
+
+
 ---
 
 ## 七、问答知识库（qa.json）
@@ -239,23 +244,23 @@ npx gltf-transform draco tmp.glb output.glb --method edgebreaker
 
 ## 八、如何获取 / 下载代码
 
-| 方式 | 操作 |
-| --- | --- |
-| GitHub ZIP | 仓库页 **Code → Download ZIP** |
-| git clone | `git clone https://github.com/zihangg05/fengyu-zhida.git` |
-| 历史某次提交 | 仓库 **Commits → 某次 → Browse files / 下载该版本** |
+| 方式         | 操作                                                        |
+| ---------- | --------------------------------------------------------- |
+| GitHub ZIP | 仓库页 **Code → Download ZIP**                               |
+| git clone  | `git clone https://github.com/zihangg05/fengyu-zhida.git` |
+| 历史某次提交     | 仓库 **Commits → 某次 → Browse files / 下载该版本**                |
 
 ---
 
 ## 九、常见问题排查
 
-| 现象 | 根因 | 解决 |
-| --- | --- | --- |
-| 3D 模型整块加载失败 | Draco 解码器走 gstatic 被墙 | 已本地托管 `assets/models/draco/`；确认 `draco-decoder-location` 指向它 |
-| 化验单页报"AI 解读暂不可" | GitHub Pages 无服务端，`/api/interpret` 必 404 | 部署 Cloudflare Worker 并回填 `LAB_API_URL`（见第五节） |
-| 红线问题仍被科普回答 | redlines 关键词覆盖不足 | 在 `qa.json` 的对应 type 补关键词（如 illegal 加"代购药/海外购药/走私/私下买药"） |
-| git push 报错 443 reset | 网络抖动 | 重试循环（见第四节） |
-| 视频卡顿（旧） | 5.6MB MP4 | 已替换为内联 SVG + CSS 动画（约 6KB），无需处理 |
+| 现象                    | 根因                                       | 解决                                                           |
+| --------------------- | ---------------------------------------- | ------------------------------------------------------------ |
+| 3D 模型整块加载失败           | Draco 解码器走 gstatic 被墙                    | 已本地托管 `assets/models/draco/`；确认 `draco-decoder-location` 指向它 |
+| 化验单页报"AI 解读暂不可"       | GitHub Pages 无服务端，`/api/interpret` 必 404 | 部署 Cloudflare Worker 并回填 `LAB_API_URL`（见第五节）                 |
+| 红线问题仍被科普回答            | redlines 关键词覆盖不足                         | 在 `qa.json` 的对应 type 补关键词（如 illegal 加"代购药/海外购药/走私/私下买药"）     |
+| git push 报错 443 reset | 网络抖动                                     | 重试循环（见第四节）                                                   |
+| 视频卡顿（旧）               | 5.6MB MP4                                | 已替换为内联 SVG + CSS 动画（约 6KB），无需处理                              |
 
 ---
 
