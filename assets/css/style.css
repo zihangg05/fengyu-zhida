@@ -486,33 +486,8 @@ model-viewer.joint-model {
 .legend-note { margin-left: auto; color: var(--muted); font-size: 12px; }
 .model-note { margin: 10px 2px 0; color: var(--muted); font-size: 13px; line-height: 1.7; }
 
-/* 3D 模型上的色系标注点：与图例同色，点击打开对应讲解 */
-.model-pin {
-  position: absolute;                 /* model-viewer 会按 3D 坐标投影定位 */
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 4px 10px 4px 8px;
-  border: none; border-radius: 999px;
-  font-size: 12px; font-weight: 700;
-  color: #fff; cursor: pointer;
-  transform: translate(-50%, -50%);
-  box-shadow: 0 2px 8px rgba(12, 36, 64, .28);
-  white-space: nowrap;
-  font-family: inherit;
-  -webkit-tap-highlight-color: transparent;
-}
-.model-pin::before {
-  content: ""; width: 10px; height: 10px; flex: 0 0 10px;
-  border-radius: 50%; background: rgba(255, 255, 255, .9);
-}
-.model-pin:hover { filter: brightness(1.06); }
-.model-pin:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
-.pin-syn { background: #FF6B8A; }      /* 滑膜（与图例 #FF9B9B 同色系，略加深提升对比） */
-.pin-car { background: #1FA8C0; }      /* 软骨（与图例 #62C9DC 同色系） */
-/* model-viewer 自带 hotspot 锚点线（虚线）统一样式 */
+/* model-viewer 进度条保持默认样式，无需覆写 */
 model-viewer::part(default-progress-bar) { /* 保持默认，无需覆写 */ }
-@media (max-width: 640px) {
-  .model-pin { font-size: 11px; padding: 3px 8px 3px 6px; }
-}
 
 /* =========================================================
    页 4：后台管理
