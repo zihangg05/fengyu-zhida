@@ -6,6 +6,12 @@
 (function () {
   "use strict";
 
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c];
+    });
+  }
+
   /* ---------- 1. 移动端导航菜单 ---------- */
   function initNav() {
     var toggle = document.querySelector(".nav-toggle");
@@ -75,28 +81,150 @@
     });
   }
 
-  /* ---------- 4. 化验单上传状态切换（页 2） ---------- */
-  function initLabUpload() {
+  /* ---------- 4. 化验单上传 + AI 解读（页 2） ---------- */
+  function initLabReader() {
     var btn = document.getElementById("uploadBtn");
+    var fileInput = document.getElementById("labFile");
+    var card = document.getElementById("uploadCard");
     var state1 = document.getElementById("uploadState");
     var state2 = document.getElementById("reportState");
-    if (!btn || !state1 || !state2) return;
-    var card = document.getElementById("uploadCard");
-    var trigger = function () {
+    var statusEl = document.getElementById("labStatus");
+    var preview = document.getElementById("labPreview");
+    var placeholder = document.getElementById("labFigurePlaceholder");
+    var metricsEl = document.getElementById("labMetrics");
+    var summaryEl = document.getElementById("labSummary");
+    var disclaimerEl = document.getElementById("labDisclaimer");
+    var titleEl = document.getElementById("labResultTitle");
+    if (!btn || !fileInput || !state1 || !state2) return;
+
+    var API_URL = window.LAB_API_URL || "/api/interpret";
+    var busy = false;
+
+    function setStatus(msg, kind) {
+      if (!statusEl) return;
+      statusEl.hidden = !msg;
+      statusEl.textContent = msg || "";
+      statusEl.className = "lab-status" + (kind ? " " + kind : "");
+    }
+    function showReport() {
       state1.hidden = true;
       state2.hidden = false;
       state2.scrollIntoView({ behavior: "smooth", block: "start" });
-    };
-    btn.addEventListener("click", trigger);
-    if (card) {
-      card.addEventListener("click", function (e) {
-        if (e.target === btn) return; // 避免重复触发
-        trigger();
-      });
-      card.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); trigger(); }
+    }
+    function statusClassOf(s) {
+      return s === "low" ? "low" : s === "normal" ? "ok" : s === "unknown" ? "unknown" : "high";
+    }
+    function statusTextOf(s) {
+      return s === "low" ? "偏低 ↓" : s === "normal" ? "正常" : s === "unknown" ? "未知" : "偏高 ↑";
+    }
+
+    function renderMetrics(data) {
+      var metrics = (data && data.metrics) || [];
+      if (summaryEl) {
+        if (data && data.summary) { summaryEl.textContent = data.summary; summaryEl.hidden = false; }
+        else summaryEl.hidden = true;
+      }
+      if (!metrics.length) {
+        metricsEl.innerHTML =
+          '<div class="metric"><div class="note">未能从图片中识别出明确指标，建议上传清晰、完整的化验单，或咨询专科医师。</div></div>';
+      } else {
+        metricsEl.innerHTML = metrics.map(function (m) {
+          var cls = statusClassOf(m.status);
+          var val = esc(m.value || "") + " " + statusTextOf(m.status);
+          var range = m.range ? "参考范围：" + esc(m.range) : "";
+          return '<div class="metric">' +
+            '<div class="row"><span class="name">' + esc(m.name || "指标") + '</span>' +
+            '<span class="val ' + cls + '">' + val + '</span></div>' +
+            (range ? '<div class="range">' + range + '</div>' : '') +
+            '<div class="note">' + esc(m.note || "") + '</div>' +
+            '</div>';
+        }).join("");
+      }
+      if (disclaimerEl) {
+        disclaimerEl.textContent =
+          (data && data.disclaimer) || "本解读仅供科普参考，不能替代医师面诊与诊断。";
+      }
+      if (titleEl) titleEl.textContent = "指标解读";
+    }
+
+    // 客户端压缩：限制最长边，减少上传体积与视觉模型成本
+    function fileToResizedDataURL(file, maxDim, quality) {
+      return new Promise(function (resolve, reject) {
+        var url = URL.createObjectURL(file);
+        var img = new Image();
+        img.onload = function () {
+          var w = img.naturalWidth, h = img.naturalHeight;
+          var scale = Math.min(1, maxDim / Math.max(w, h));
+          var tw = Math.max(1, Math.round(w * scale));
+          var th = Math.max(1, Math.round(h * scale));
+          var canvas = document.createElement("canvas");
+          canvas.width = tw; canvas.height = th;
+          canvas.getContext("2d").drawImage(img, 0, 0, tw, th);
+          URL.revokeObjectURL(url);
+          resolve(canvas.toDataURL("image/jpeg", quality));
+        };
+        img.onerror = function () {
+          URL.revokeObjectURL(url);
+          reject(new Error("图片读取失败"));
+        };
+        img.src = url;
       });
     }
+
+    function handleFile(file) {
+      if (!file) return;
+      if (!/^image\//.test(file.type)) { setStatus("请选择图片文件（JPG / PNG）", "error"); return; }
+      if (busy) return;
+      busy = true;
+      setStatus("正在分析化验单…");
+      showReport();
+      if (preview) { preview.src = URL.createObjectURL(file); preview.hidden = false; }
+      if (placeholder) placeholder.hidden = true;
+      if (titleEl) titleEl.textContent = "指标解读（分析中…）";
+
+      fileToResizedDataURL(file, 1280, 0.85)
+        .then(function (dataUrl) {
+          return fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image: dataUrl }),
+          });
+        })
+        .then(function (r) {
+          return r.json().then(function (j) {
+            if (!r.ok) throw new Error(j.error || ("服务异常 " + r.status));
+            return j;
+          });
+        })
+        .then(function (data) { setStatus(""); renderMetrics(data); })
+        .catch(function (err) {
+          if (titleEl) titleEl.textContent = "指标解读（演示示例）";
+          var msg = err && err.message ? err.message : "未知错误";
+          if (/Failed to fetch|NetworkError|Load failed|网络/i.test(msg)) {
+            // 多为后端未部署 / LAB_API_URL 未指向可用服务 / 跨域被拦
+            setStatus(
+              "AI 解读后端暂不可达（LAB_API_URL 未指向可用服务，或后端尚未部署）。已显示演示示例，部署后端并刷新后重试。",
+              "error"
+            );
+          } else {
+            setStatus("AI 解读暂不可用：" + msg + "。已显示演示示例，请稍后重试。", "error");
+          }
+        })
+        .then(function () { busy = false; });
+    }
+
+    btn.addEventListener("click", function () { fileInput.click(); });
+    if (card) {
+      card.addEventListener("click", function (e) { if (e.target === btn) return; fileInput.click(); });
+      card.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInput.click(); }
+      });
+    }
+    fileInput.addEventListener("change", function () {
+      var f = fileInput.files && fileInput.files[0];
+      handleFile(f);
+      fileInput.value = ""; // 允许重复选择同一文件
+    });
   }
 
   /* ---------- 5. CSV 导出 Toast（页 4） ---------- */
@@ -184,12 +312,6 @@
       .catch(function () {
         DATA = { fallback: "科普知识库加载失败，请刷新页面后重试。", pairs: [] };
       });
-
-    function esc(s) {
-      return String(s).replace(/[&<>]/g, function (c) {
-        return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c];
-      });
-    }
 
     function addMsg(role, html) {
       var m = document.createElement("div");
@@ -296,7 +418,7 @@
     initNav();
     initActiveNav();
     initModals();
-    initLabUpload();
+    initLabReader();
     initExportCsv();
     initImmuneHotspots();
     initModelViewer();

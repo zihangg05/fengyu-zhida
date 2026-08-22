@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>化验单解读 · 风语智答｜风湿免疫病智能科普患教平台</title>
-  <meta name="description" content="风语智答化验单解读演示：上传化验单图片，查看模拟指标解读与科普说明。本页为交互原型 Demo。">
+  <meta name="description" content="风语智答化验单解读：上传化验单图片，AI 视觉模型识别指标并给出科普解读参考。">
   <meta property="og:title" content="风语智答 · 化验单解读">
   <meta property="og:description" content="风湿免疫病化验单科普解读演示（原型）">
   <meta property="og:type" content="website">
@@ -34,8 +34,8 @@
     <div class="container">
       <div class="section-head">
         <span class="eyebrow">化验单解读</span>
-        <h1>上传化验单，查看科普解读</h1>
-        <p>上传一张化验单图片（演示），系统将模拟展示指标解读与科普说明。本功能为原型演示，解读结果不具医疗效力。</p>
+        <h1>上传化验单，AI 科普解读</h1>
+        <p>上传一张化验单图片，AI 视觉模型将识别其中的指标并给出科普解读。结果仅供科普参考，不具医疗效力，请以纸质报告与医师意见为准。</p>
       </div>
 
       <!-- 状态 1：上传 -->
@@ -45,45 +45,55 @@
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1E6FD9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
           </div>
           <h3 style="margin:0 0 4px;">上传化验单图片</h3>
-          <p style="color:var(--muted);margin:0 0 16px;">支持 JPG / PNG，演示环境不会真实上传或分析</p>
+          <p style="color:var(--muted);margin:0 0 8px;">支持 JPG / PNG，AI 视觉模型将识别指标并给出科普解读</p>
+          <p style="font-size:12px;color:var(--muted);margin:0 0 16px;">提示：图片仅用于本次解读，建议隐去姓名、就诊号等个人信息。</p>
+          <input type="file" id="labFile" accept="image/*" hidden>
           <button class="btn btn-primary" id="uploadBtn" type="button">选择文件并解读</button>
         </div>
       </div>
+
+      <!-- 状态提示（加载/错误） -->
+      <div id="labStatus" class="lab-status" hidden></div>
 
       <!-- 状态 2：报告解读 -->
       <div id="reportState" hidden>
         <div class="report-grid">
           <div class="report-figure">
-            <div class="figure">化验单图片占位区<br>（演示）</div>
-            <p style="font-size:12px;color:var(--muted);margin:10px 0 0;text-align:center;">示例：风湿免疫相关指标报告</p>
+            <img id="labPreview" class="lab-preview" alt="您上传的化验单" hidden>
+            <div class="figure" id="labFigurePlaceholder">化验单预览</div>
+            <p style="font-size:12px;color:var(--muted);margin:10px 0 0;text-align:center;">您上传的化验单图片</p>
           </div>
           <div>
-            <h3 style="margin-top:0;">指标解读（示例）</h3>
-            <div class="metric">
-              <div class="row">
-                <span class="name">类风湿因子 (RF)</span>
-                <span class="val high">偏高 ↑</span>
+            <h3 style="margin-top:0;" id="labResultTitle">指标解读</h3>
+            <div id="labSummary" class="lab-summary" hidden></div>
+            <div id="labMetrics">
+              <!-- 默认展示演示示例；AI 解读成功后将替换为真实结果 -->
+              <div class="metric">
+                <div class="row">
+                  <span class="name">类风湿因子 (RF)</span>
+                  <span class="val high">偏高 ↑</span>
+                </div>
+                <div class="range">参考范围：&lt; 20 IU/mL</div>
+                <div class="note">RF 升高可见于类风湿关节炎，也可见于其他自身免疫病或感染，需结合临床判断。</div>
               </div>
-              <div class="range">参考范围：&lt; 20 IU/mL</div>
-              <div class="note">RF 升高可见于类风湿关节炎，也可见于其他自身免疫病或感染，需结合临床判断。</div>
-            </div>
-            <div class="metric">
-              <div class="row">
-                <span class="name">抗环瓜氨酸肽抗体 (抗CCP)</span>
-                <span class="val high">阳性 +</span>
+              <div class="metric">
+                <div class="row">
+                  <span class="name">抗环瓜氨酸肽抗体 (抗CCP)</span>
+                  <span class="val high">阳性 +</span>
+                </div>
+                <div class="range">参考范围：阴性</div>
+                <div class="note">抗 CCP 抗体对类风湿关节炎有较高特异性，阳性时需重视并就诊专科。</div>
               </div>
-              <div class="range">参考范围：阴性</div>
-              <div class="note">抗 CCP 抗体对类风湿关节炎有较高特异性，阳性时需重视并就诊专科。</div>
-            </div>
-            <div class="metric">
-              <div class="row">
-                <span class="name">C 反应蛋白 (CRP)</span>
-                <span class="val ok">正常</span>
+              <div class="metric">
+                <div class="row">
+                  <span class="name">C 反应蛋白 (CRP)</span>
+                  <span class="val ok">正常</span>
+                </div>
+                <div class="range">参考范围：0 – 10 mg/L</div>
+                <div class="note">CRP 反映炎症活动度，正常提示当前无明显急性炎症。</div>
               </div>
-              <div class="range">参考范围：0 – 10 mg/L</div>
-              <div class="note">CRP 反映炎症活动度，正常提示当前无明显急性炎症。</div>
             </div>
-            <p style="font-size:13px;color:var(--muted);margin:14px 0 0;">
+            <p id="labDisclaimer" style="font-size:13px;color:var(--muted);margin:14px 0 0;">
               * 以上为演示数据，真实化验单请以检验报告为准，并咨询专科医师。
             </p>
           </div>
@@ -96,6 +106,15 @@
     <p>⚠ 全部内容仅为科普参考，不构成任何专业建议，不能替代医师面诊，身体异常请前往医院专科就诊。</p>
   </footer>
 
+  <script>
+    // 化验单解读后端地址（独立 Cloudflare Worker）：
+    // 本站前端托管在 GitHub Pages（纯静态，无服务端运行时），无法执行 /api/interpret，
+    // 因此必须指向单独部署的 Worker。部署后把下面 <子域> 替换成你的
+    // *.workers.dev 子域（或绑定的自定义域名）即可，例如
+    //   "https://fengyu-interpret.zihang.workers.dev/api/interpret"
+    // 留空或写 "/api/interpret" 仅在整站迁移到 Cloudflare Pages 时才可用。
+    window.LAB_API_URL = "https://fengyu-interpret.<子域>.workers.dev/api/interpret";
+  </script>
   <script src="assets/js/main.js"></script>
 </body>
 </html>

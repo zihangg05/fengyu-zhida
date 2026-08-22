@@ -1,0 +1,20 @@
+name = "fengyu-interpret"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+# 部署到 Cloudflare 后，Worker 默认地址为：
+#   https://fengyu-interpret.<你的-workers-子域>.workers.dev/api/interpret
+# 也可在 Cloudflare 控制台给该 Worker 绑定自定义域名。
+#
+# 密钥（务必用 secret 注入，勿明文写进本文件或提交）：
+#   wrangler secret put VISION_API_KEY
+#   wrangler secret put VISION_API_BASE      # 可选，默认 https://api.openai.com/v1
+#   wrangler secret put VISION_MODEL         # 可选，默认 gpt-4o-mini
+#
+# 若用 API Token 部署（而非 wrangler login），取消注释并填入你的 Account ID：
+# account_id = "你的-cloudflare-account-id"
+
+# 非敏感默认值（生产可被 secret 覆盖）
+[vars]
+VISION_API_BASE = "https://api.openai.com/v1"
+VISION_MODEL = "gpt-4o-mini"

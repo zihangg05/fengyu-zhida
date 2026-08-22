@@ -296,8 +296,29 @@ h1, h2, h3, h4 { line-height: 1.25; color: var(--blue-900); margin: 0 0 .5em; }
 .metric .val { font-weight: 700; }
 .metric .val.ok { color: #1f9d55; }
 .metric .val.high { color: var(--danger); }
+.metric .val.low { color: #2f7de0; }
+.metric .val.unknown { color: var(--muted); }
 .metric .range { font-size: 12px; color: var(--muted); }
 .metric .note { font-size: 13px; color: var(--muted); margin-top: 4px; }
+/* 真实上传图片预览 */
+.lab-preview {
+  display: block; width: 100%; max-height: 340px; object-fit: contain;
+  border-radius: 12px; border: 1px solid var(--line); background: #f4f8fd;
+}
+.lab-summary {
+  font-size: 14px; line-height: 1.6; color: var(--blue-900);
+  background: var(--blue-50); border: 1px solid var(--blue-100);
+  border-radius: 12px; padding: 10px 14px; margin-bottom: 12px;
+}
+/* 加载 / 错误状态条 */
+.lab-status {
+  margin: 14px auto 0; max-width: 720px;
+  padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.6;
+  background: var(--blue-50); border: 1px solid var(--blue-100); color: var(--blue-900);
+}
+.lab-status.error {
+  background: #FFF7EC; border-color: #F0C36D; color: #8a4b00;
+}
 
 /* =========================================================
    页 3：免疫机制演示（SVG 动画版，替代视频以保证流畅）

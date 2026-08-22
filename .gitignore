@@ -1,0 +1,4 @@
+# 本地密钥与 Worker 构建缓存（勿提交）
+.dev.vars
+.wrangler/
+node_modules/
