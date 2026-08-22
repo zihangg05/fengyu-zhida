@@ -28,7 +28,7 @@ fengyu-zhida/
 ├── index.html            # 首页：前端规则问答 + 红线拒答 + 引用来源弹窗
 ├── lab-reading.html      # 化验单解读：上传真实图片 → 调 Worker
 ├── immune-demo.html      # 免疫机制演示：SVG 动画 + 可旋转 3D 模型 + 图例讲解
-├── admin.html            # 管理后台（占位）
+├── admin.html            # 管理后台：数据驱动，支持编辑/新增/搜索/筛选/CSV 导出
 ├── refusal.html          # 安全拒答演示页（独立保留）
 ├── worker.js             # 独立 Cloudflare Worker（OCR + 科普解读）
 ├── wrangler.toml         # Worker 部署配置
@@ -38,6 +38,7 @@ fengyu-zhida/
 │   ├── css/style.css     # 全站样式（含 3D、图例、弹窗、问答气泡）
 │   ├── js/main.js        # 全站交互（QA、模态框、化验单、3D 图例）
 │   ├── data/qa.json      # 问答知识库（pairs + redlines + fallback）
+│   ├── data/admin.json   # 管理后台数据（knowledge 知识条目 + logs 对话日志）
 │   ├── models/joint.glb           # 3D 关节模型（264KB 压缩版）
 │   ├── models/joint_preview.png   # 3D 模型加载前占位图
 │   ├── models/draco/              # 本地 Draco 解码器（去 gstatic 外部依赖）
