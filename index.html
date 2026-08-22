@@ -50,29 +50,22 @@
               来源供您查阅。
             </div>
           </div>
-
-          <div class="msg user">
-            <div class="avatar">我</div>
-            <div class="bubble">我的类风湿因子（RF）偏高，这是不是一定是类风湿？</div>
-          </div>
-
-          <div class="msg ai">
-            <div class="avatar">AI</div>
-            <div class="bubble">
-              类风湿因子（RF）升高并不一定意味着患有类风湿关节炎。RF 也可见于其他自身免疫病、感染，甚至部分健康老年人
-              <button class="cite" data-modal="sourceModal" aria-haspopup="dialog">查看来源</button>。
-              具体诊断需结合症状、体征与多项检查，由专科医师综合判断。
-            </div>
-          </div>
         </section>
 
-        <form class="composer" onsubmit="return false;" aria-label="输入区">
+        <div class="qa-suggest" aria-label="常见问题">
+          <button type="button" class="chip" data-q="类风湿因子升高说明什么？">类风湿因子升高说明什么？</button>
+          <button type="button" class="chip" data-q="什么是晨僵？">什么是晨僵？</button>
+          <button type="button" class="chip" data-q="痛风和尿酸高有什么关系？">痛风和尿酸高有关吗？</button>
+          <button type="button" class="chip" data-q="红斑狼疮有哪些常见表现？">红斑狼疮表现</button>
+        </div>
+
+        <form class="composer" id="qa-form" aria-label="输入区">
           <label for="qa-input" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);">输入您的问题</label>
-          <textarea id="qa-input" placeholder="描述您的疑问，例如：晨僵超过多久需要留意？"></textarea>
-          <a class="btn btn-primary" href="refusal.html" style="align-self:flex-end;">发送</a>
+          <textarea id="qa-input" rows="2" placeholder="描述您的疑问，例如：晨僵超过多久需要留意？（Enter 发送，Shift+Enter 换行）"></textarea>
+          <button type="submit" class="btn btn-primary">发送</button>
         </form>
         <p style="text-align:center;color:var(--muted);font-size:13px;margin:4px 0 0;">
-          演示提示：点击「发送」将进入安全拒答演示页。
+          提示：本问答为规则科普库，覆盖类风湿因子、晨僵、痛风、红斑狼疮等常见问题；角标 <span class="cite" style="cursor:default;">[1]</span> 可查看引用来源。
         </p>
       </div>
     </div>

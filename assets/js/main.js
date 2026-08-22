@@ -54,12 +54,13 @@
     document.body.style.overflow = "";
   }
   function initModals() {
-    // 打开：任何带 data-modal 的元素
-    document.querySelectorAll("[data-modal]").forEach(function (trigger) {
-      trigger.addEventListener("click", function (e) {
+    // 打开：事件委托，覆盖静态与动态生成的 data-modal 触发器
+    document.addEventListener("click", function (e) {
+      var trigger = e.target.closest("[data-modal]");
+      if (trigger) {
         e.preventDefault();
         openModal(trigger.getAttribute("data-modal"));
-      });
+      }
     });
     // 关闭：按钮 / 背景 / ESC
     document.querySelectorAll(".modal").forEach(function (m) {
@@ -166,6 +167,100 @@
     }, { once: true });
   }
 
+  /* ---------- 首页问答：前端规则匹配（无后端） ---------- */
+  function initQA() {
+    var form = document.getElementById("qa-form");
+    if (!form) return;
+    var chat = document.querySelector(".chat");
+    var input = document.getElementById("qa-input");
+    if (!chat || !input) return;
+
+    var DATA = null;
+    var pending = false;
+
+    fetch("assets/data/qa.json")
+      .then(function (r) { return r.json(); })
+      .then(function (d) { DATA = d; })
+      .catch(function () {
+        DATA = { fallback: "科普知识库加载失败，请刷新页面后重试。", pairs: [] };
+      });
+
+    function esc(s) {
+      return String(s).replace(/[&<>]/g, function (c) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c];
+      });
+    }
+
+    function addMsg(role, html) {
+      var m = document.createElement("div");
+      m.className = "msg " + role;
+      m.innerHTML =
+        '<div class="avatar">' + (role === "ai" ? "AI" : "我") + "</div>" +
+        '<div class="bubble">' + html + "</div>";
+      chat.appendChild(m);
+      chat.scrollTop = chat.scrollHeight;
+      return m;
+    }
+
+    function normalize(s) {
+      return s.toLowerCase().replace(/[\s\p{P}]/gu, "");
+    }
+
+    function findAnswer(text) {
+      if (!DATA || !DATA.pairs) return { a: (DATA && DATA.fallback) || "", src: [] };
+      var q = normalize(text);
+      var best = null, bestScore = 0;
+      DATA.pairs.forEach(function (p) {
+        var score = 0;
+        (p.keywords || []).forEach(function (kw) {
+          var k = normalize(kw);
+          if (k && q.indexOf(k) >= 0) score++;
+        });
+        if (score > bestScore) { bestScore = score; best = p; }
+      });
+      if (bestScore > 0) return { a: best.a, src: best.src || [] };
+      return { a: DATA.fallback, src: [] };
+    }
+
+    function citeHTML(src) {
+      if (!src || !src.length) return "";
+      return " " + src.map(function (n) {
+        return '<button type="button" class="cite" data-modal="sourceModal" aria-haspopup="dialog">[' + n + "]</button>";
+      }).join(" ");
+    }
+
+    function answer(text) {
+      if (pending) return;
+      pending = true;
+      var typing = addMsg("ai", "正在查询科普资料…");
+      setTimeout(function () {
+        var res = findAnswer(text);
+        typing.querySelector(".bubble").innerHTML = esc(res.a) + citeHTML(res.src);
+        pending = false;
+      }, 360);
+    }
+
+    function send() {
+      var text = input.value.trim();
+      if (!text) return;
+      addMsg("user", esc(text));
+      input.value = "";
+      input.style.height = "auto";
+      answer(text);
+    }
+
+    form.addEventListener("submit", function (e) { e.preventDefault(); send(); });
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+    });
+    document.querySelectorAll(".qa-suggest .chip").forEach(function (c) {
+      c.addEventListener("click", function () {
+        input.value = c.getAttribute("data-q") || c.textContent;
+        send();
+      });
+    });
+  }
+
   /* ---------- 启动 ---------- */
   document.addEventListener("DOMContentLoaded", function () {
     initNav();
@@ -175,6 +270,7 @@
     initExportCsv();
     initImmuneHotspots();
     initModelViewer();
+    initQA();
   });
 
   // 暴露给内联调用（如发送按钮跳转）

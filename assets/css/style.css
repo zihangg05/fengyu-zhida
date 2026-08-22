@@ -226,6 +226,16 @@ h1, h2, h3, h4 { line-height: 1.25; color: var(--blue-900); margin: 0 0 .5em; }
   border-radius: 14px; font-family: inherit; font-size: 15px; background: #fff;
 }
 .composer textarea:focus { outline: none; border-color: var(--blue-500); box-shadow: 0 0 0 3px var(--blue-50); }
+.composer .btn-primary { align-self: flex-end; }
+.qa-suggest { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.qa-suggest .chip {
+  padding: 8px 14px; border: 1px solid var(--blue-200); background: #fff;
+  color: var(--blue-700); border-radius: 999px; font-size: 13px; cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.qa-suggest .chip:hover { background: var(--blue-600); color: #fff; }
+.msg { animation: msgIn .25s ease; }
+@keyframes msgIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
 /* =========================================================
    页 2：化验单解读
