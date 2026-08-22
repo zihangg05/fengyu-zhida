@@ -217,6 +217,23 @@ h1, h2, h3, h4 { line-height: 1.25; color: var(--blue-900); margin: 0 0 .5em; }
   border: none;
 }
 .cite:hover { background: var(--blue-200); }
+/* 红线问题拒答气泡：温和警示色，与浅蓝医疗风协调 */
+.msg.refused .bubble {
+  background: #FFF7EC;
+  border: 1px solid #F0C36D;
+  border-left: 4px solid #E8820C;
+}
+.refuse-tag {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 1px 8px;
+  background: #E8820C;
+  color: #fff;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  vertical-align: middle;
+}
 .composer {
   display: flex; gap: 10px; align-items: stretch;
 }

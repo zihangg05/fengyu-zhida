@@ -206,6 +206,22 @@
       return s.toLowerCase().replace(/[\s\p{P}]/gu, "");
     }
 
+    // 红线问题优先拦截：命中则返回拒答文案（不进入科普匹配）
+    function matchRedline(text) {
+      if (!DATA || !DATA.redlines) return null;
+      var q = normalize(text);
+      var hit = null;
+      (DATA.redlines || []).some(function (rl) {
+        var matched = (rl.keywords || []).some(function (kw) {
+          var k = normalize(kw);
+          return k && q.indexOf(k) >= 0;
+        });
+        if (matched) { hit = rl.reply; return true; }
+        return false;
+      });
+      return hit;
+    }
+
     function findAnswer(text) {
       if (!DATA || !DATA.pairs) return { a: (DATA && DATA.fallback) || "", src: [] };
       var q = normalize(text);
@@ -232,6 +248,20 @@
     function answer(text) {
       if (pending) return;
       pending = true;
+
+      // 先做红线拦截：命中则渲染「安全提示」拒答气泡
+      var refused = matchRedline(text);
+      if (refused) {
+        var typingR = addMsg("ai", "正在判断提问是否可以回答…");
+        typingR.classList.add("refused");
+        setTimeout(function () {
+          typingR.querySelector(".bubble").innerHTML =
+            '<span class="refuse-tag">安全提示</span>' + esc(refused);
+          pending = false;
+        }, 320);
+        return;
+      }
+
       var typing = addMsg("ai", "正在查询科普资料…");
       setTimeout(function () {
         var res = findAnswer(text);
