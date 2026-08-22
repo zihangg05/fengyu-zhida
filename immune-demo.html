@@ -161,7 +161,7 @@
 
       <section class="model-section" aria-labelledby="modelTitle">
         <h2 id="modelTitle" class="model-title">3D 关节结构（可旋转查看）</h2>
-        <p class="model-desc">下方为关节结构的 3D 示意模型，加载完成后即可用鼠标 / 手指拖动旋转、滚轮或双指缩放。图例配色与上方动画保持一致，点击图例或上方动画热区均可查看对应讲解。</p>
+        <p class="model-desc">下方为关节结构的 3D 示意模型，加载完成后即可用鼠标 / 手指拖动旋转、滚轮或双指缩放。模型上的<span style="color:#FF6B8A;font-weight:700;">粉色</span>「滑膜」与<span style="color:#1FA8C0;font-weight:700;">青色</span>「软骨」标注点与下方图例同色，点击可查看对应讲解。</p>
         <div class="model-stage">
           <model-viewer
             class="joint-model"
@@ -176,7 +176,12 @@
             exposure="1.1"
             loading="eager"
             progress-bar
-            interaction-prompt="auto">
+            interaction-prompt="auto"
+            draco-decoder-location="assets/models/draco/">
+            <!-- 3D 模型上的色系标注：与下方图例同色，点击查看对应讲解 -->
+            <button class="model-pin pin-syn" slot="hotspot-syn" data-position="0.035 0.50 -0.04" data-normal="0 0 1" data-modal="synoviumModal" type="button" aria-label="滑膜位置">滑膜</button>
+            <button class="model-pin pin-car" slot="hotspot-car-lo" data-position="0.035 0.40 -0.04" data-normal="0 0 1" data-modal="cartilageModal" type="button" aria-label="软骨位置（下骨端）">软骨</button>
+            <button class="model-pin pin-car" slot="hotspot-car-hi" data-position="0.035 0.62 -0.04" data-normal="0 0 1" data-modal="cartilageModal" type="button" aria-label="软骨位置（上骨端）">软骨</button>
           </model-viewer>
           <div class="model-legend" aria-label="关节结构图例（与上方动画配色一致）">
             <button class="legend-item" data-modal="synoviumModal" type="button" aria-haspopup="dialog">
