@@ -161,7 +161,7 @@
 
       <section class="model-section" aria-labelledby="modelTitle">
         <h2 id="modelTitle" class="model-title">3D 关节结构（可旋转查看）</h2>
-        <p class="model-desc">下方为关节结构的 3D 示意模型，加载完成后即可用鼠标 / 手指拖动旋转、滚轮或双指缩放。下方的<span style="color:#FF9B9B;font-weight:700;">粉色</span>「滑膜」与<span style="color:#62C9DC;font-weight:700;">青色</span>「软骨」图例与模型配色同色，点击图例即可查看对应讲解。</p>
+        <p class="model-desc">下方为关节结构的 3D 示意模型，加载完成后即可用鼠标 / 手指拖动旋转、滚轮或双指缩放。模型上的<span style="color:#FF2D6F;font-weight:700;">玫红色</span>色片标注「滑膜」、<span style="color:#00B4D8;font-weight:700;">青色</span>色片标注「软骨」，色片会随旋转与缩放始终对位；下方图例同色，点击图例可查看对应讲解。</p>
         <div class="model-stage">
           <model-viewer
             class="joint-model"
@@ -178,6 +178,16 @@
             progress-bar
             interaction-prompt="auto"
             draco-decoder-location="assets/models/draco/">
+            <!-- 跟随旋转缩放的组织色片标注：纯视觉、不可点击，讲解走下方图例 -->
+            <div class="tissue-mark mark-syn" slot="hotspot-syn" data-position="0.035 0.50 -0.04" data-normal="0 0 1" aria-hidden="true">
+              <span class="mark-ring"></span><span class="mark-tag">滑膜</span>
+            </div>
+            <div class="tissue-mark mark-car" slot="hotspot-car-lo" data-position="0.035 0.40 -0.04" data-normal="0 0 1" aria-hidden="true">
+              <span class="mark-ring"></span><span class="mark-tag">软骨</span>
+            </div>
+            <div class="tissue-mark mark-car" slot="hotspot-car-hi" data-position="0.035 0.62 -0.04" data-normal="0 0 1" aria-hidden="true">
+              <span class="mark-ring"></span><span class="mark-tag">软骨</span>
+            </div>
           </model-viewer>
           <div class="model-legend" aria-label="关节结构图例（与上方动画配色一致）">
             <button class="legend-item" data-modal="synoviumModal" type="button" aria-haspopup="dialog">

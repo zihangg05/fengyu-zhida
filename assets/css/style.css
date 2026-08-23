@@ -480,11 +480,51 @@ model-viewer.joint-model {
   width: 14px; height: 14px; flex: 0 0 14px; border-radius: 4px;
   box-shadow: inset 0 0 0 1px rgba(30, 111, 217, .18);
 }
-.swatch-syn  { background: #FF9B9B; }                       /* 滑膜（同动画） */
-.swatch-car  { background: #62C9DC; }                       /* 软骨（同动画） */
+.swatch-syn  { background: #FF2D6F; }                       /* 滑膜（玫红，与色片同色） */
+.swatch-car  { background: #00B4D8; }                       /* 软骨（亮青，与色片同色） */
 .swatch-bone { background: linear-gradient(180deg, #EDF4FC, #B7CDE2); } /* 骨组织 */
 .legend-note { margin-left: auto; color: var(--muted); font-size: 12px; }
 .model-note { margin: 10px 2px 0; color: var(--muted); font-size: 13px; line-height: 1.7; }
+
+/* 3D 模型上的组织色片标注：跟随旋转缩放、不可点击、纯视觉区分 */
+.tissue-mark {
+  position: absolute;
+  display: flex; align-items: center; gap: 7px;
+  pointer-events: none;
+  z-index: 3;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+.tissue-mark .mark-ring {
+  width: 30px; height: 30px; flex: 0 0 30px;
+  border-radius: 50%;
+  border: 2.5px solid;
+  box-shadow: 0 0 14px 2px;
+  animation: markPulse 2.2s ease-in-out infinite;
+}
+.tissue-mark .mark-tag {
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 12px; font-weight: 700;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(12, 36, 64, .18);
+  white-space: nowrap;
+}
+.mark-syn .mark-ring { border-color: #FF2D6F; box-shadow: 0 0 14px 2px rgba(255, 45, 111, .55); background: rgba(255, 45, 111, .30); }
+.mark-syn .mark-tag  { color: #C4004F; border: 1.5px solid #FF2D6F; }
+.mark-car .mark-ring { border-color: #00B4D8; box-shadow: 0 0 14px 2px rgba(0, 180, 216, .55); background: rgba(0, 180, 216, .30); }
+.mark-car .mark-tag  { color: #00798F; border: 1.5px solid #00B4D8; }
+@keyframes markPulse {
+  0%, 100% { transform: scale(1); opacity: .85; }
+  50% { transform: scale(1.18); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tissue-mark .mark-ring { animation: none; }
+}
+@media (max-width: 640px) {
+  .tissue-mark .mark-ring { width: 24px; height: 24px; flex: 0 0 24px; }
+  .tissue-mark .mark-tag { font-size: 11px; padding: 2px 7px; }
+}
 
 /* model-viewer 进度条保持默认样式，无需覆写 */
 model-viewer::part(default-progress-bar) { /* 保持默认，无需覆写 */ }
