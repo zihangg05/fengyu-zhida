@@ -319,6 +319,11 @@ h1, h2, h3, h4 { line-height: 1.25; color: var(--blue-900); margin: 0 0 .5em; }
 .lab-status.error {
   background: #FFF7EC; border-color: #F0C36D; color: #8a4b00;
 }
+/* 演示模式提示：后端未接入时的低调说明，不作警示 */
+.lab-status.demo {
+  background: #F4F7FB; border-color: var(--blue-100); color: var(--muted);
+  font-size: 13px;
+}
 
 /* =========================================================
    页 3：免疫机制演示（SVG 动画版，替代视频以保证流畅）

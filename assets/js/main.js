@@ -197,18 +197,10 @@
           });
         })
         .then(function (data) { setStatus(""); renderMetrics(data); })
-        .catch(function (err) {
+        .catch(function () {
+          // 静默演示模式：后端未部署/不可达时不弹错误，直接展示演示解读
           if (titleEl) titleEl.textContent = "指标解读（演示示例）";
-          var msg = err && err.message ? err.message : "未知错误";
-          if (/Failed to fetch|NetworkError|Load failed|网络/i.test(msg)) {
-            // 多为后端未部署 / LAB_API_URL 未指向可用服务 / 跨域被拦
-            setStatus(
-              "AI 解读后端暂不可达（LAB_API_URL 未指向可用服务，或后端尚未部署）。已显示演示示例，部署后端并刷新后重试。",
-              "error"
-            );
-          } else {
-            setStatus("AI 解读暂不可用：" + msg + "。已显示演示示例，请稍后重试。", "error");
-          }
+          setStatus("演示模式：AI 解读服务暂未接入，以上为示例解读，仅供参考。", "demo");
         })
         .then(function () { busy = false; });
     }
