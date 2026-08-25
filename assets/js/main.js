@@ -527,6 +527,16 @@
       }).join(" ");
     }
 
+    // 豆包大模型系统提示词（医疗安全约束，前端直连时使用）
+    var DOUBAO_SYSTEM_PROMPT =
+      "你是\"风语智答\"科普助手，面向大众提供风湿免疫病相关的健康科普参考。\n" +
+      "请严格遵守以下规则：\n" +
+      "1. 仅做健康科普知识讲解，不做诊断、不开处方、不给具体用药剂量、不建议停药或替代正规治疗、不对个人病情下结论。\n" +
+      "2. 当用户要求诊断、开药、调整剂量、判断自己得了什么病、询问紧急症状怎么办时，礼貌拒绝并建议前往正规医院风湿免疫科就诊，急症提示拨打 120。\n" +
+      "3. 回答通俗易懂，避免堆砌专业术语；涉及检验指标时说明其一般临床意义，不针对个人结果做判断。\n" +
+      "4. 回答使用纯文本，段落之间用空行分隔，不使用 Markdown 格式。\n" +
+      "5. 每次回答末尾自然附上一句免责声明：\"以上内容仅为科普参考，不能替代医师面诊，具体诊疗请遵医嘱。\"";
+
     // 渲染本地规则匹配的兜底回答（API 不可用时使用）
     function renderFallback(typing, text) {
       var res = findAnswer(text);
@@ -551,31 +561,51 @@
       }
 
       var typing = addMsg("ai", "正在思考…");
-      var API_URL = window.CHAT_API_URL || "/api/chat";
+      var cfg = window.DOUBAO_CONFIG || {};
+      var apiKey = localStorage.getItem("doubao_api_key") || "";
 
-      // 优先调用豆包大模型；失败则降级到本地规则科普库
-      fetch(API_URL, {
+      // 未配置 API Key 时，弹出配置弹窗，不发起请求
+      if (!apiKey) {
+        typing.querySelector(".bubble").innerHTML =
+          '请先点击下方「配置 API Key」填入豆包 API Key 后再提问。';
+        pending = false;
+        if (window.FYZD && window.FYZD.openModal) window.FYZD.openModal("configModal");
+        return;
+      }
+
+      // 直接调用豆包大模型 API；失败则降级到本地规则科普库
+      fetch(cfg.apiUrl || "https://ark.cn-beijing.volces.com/api/v3/chat/completions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + apiKey,
+        },
+        body: JSON.stringify({
+          model: cfg.model || "",
+          temperature: 0.3,
+          messages: [
+            { role: "system", content: DOUBAO_SYSTEM_PROMPT },
+            { role: "user", content: text },
+          ],
+        }),
       })
         .then(function (r) {
           return r.json().then(function (j) {
-            if (!r.ok) throw new Error(j.error || ("服务异常 " + r.status));
+            if (!r.ok) throw new Error((j.error && j.error.message) || ("服务异常 " + r.status));
             return j;
           });
         })
         .then(function (data) {
-          if (data && data.reply) {
-            // 大模型返回纯文本，换行转 <br>
-            typing.querySelector(".bubble").innerHTML =
-              esc(data.reply).replace(/\n/g, "<br>");
+          var reply =
+            data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+          if (reply) {
+            typing.querySelector(".bubble").innerHTML = esc(reply).replace(/\n/g, "<br>");
           } else {
             throw new Error("返回格式异常");
           }
         })
         .catch(function () {
-          // 静默降级：后端未部署 / 密钥未配 / 网络异常时，回退本地规则匹配
+          // 静默降级：网络异常 / 密钥错误 / 调用失败时，回退本地规则匹配
           renderFallback(typing, text);
         })
         .then(function () { pending = false; });
@@ -602,6 +632,49 @@
     });
   }
 
+  /* ---------- 豆包 API Key 配置弹窗 ---------- */
+  function initDoubaoConfig() {
+    var modal = document.getElementById("configModal");
+    var input = document.getElementById("doubaoKeyInput");
+    var saveBtn = document.getElementById("saveConfigBtn");
+    var statusEl = document.getElementById("configStatus");
+    if (!modal || !input || !saveBtn) return;
+
+    function refreshStatus() {
+      var key = localStorage.getItem("doubao_api_key") || "";
+      if (statusEl) {
+        if (key) {
+          statusEl.textContent = "当前已配置：" + key.slice(0, 12) + "…" + key.slice(-4);
+          statusEl.style.color = "var(--success, #2a9d5c)";
+        } else {
+          statusEl.textContent = "尚未配置 API Key";
+          statusEl.style.color = "var(--danger, #d9534f)";
+        }
+      }
+      input.value = key || "";
+    }
+
+    // 打开弹窗时回填当前 Key
+    document.addEventListener("click", function (e) {
+      var trigger = e.target.closest('[data-modal="configModal"]');
+      if (trigger) refreshStatus();
+    });
+
+    saveBtn.addEventListener("click", function () {
+      var val = input.value.trim();
+      if (!val) {
+        localStorage.removeItem("doubao_api_key");
+        if (statusEl) { statusEl.textContent = "已清除 API Key"; statusEl.style.color = "var(--muted)"; }
+      } else if (val.indexOf("ark-") !== 0) {
+        if (statusEl) { statusEl.textContent = "API Key 格式不正确，应以 ark- 开头"; statusEl.style.color = "var(--danger, #d9534f)"; }
+        return;
+      } else {
+        localStorage.setItem("doubao_api_key", val);
+        if (statusEl) { statusEl.textContent = "保存成功！可以关闭弹窗开始提问。"; statusEl.style.color = "var(--success, #2a9d5c)"; }
+      }
+    });
+  }
+
   /* ---------- 启动 ---------- */
   document.addEventListener("DOMContentLoaded", function () {
     initNav();
@@ -612,6 +685,7 @@
     initImmuneHotspots();
     initModelViewer();
     initQA();
+    initDoubaoConfig();
   });
 
   // 暴露给内联调用（如发送按钮跳转）
