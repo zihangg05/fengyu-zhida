@@ -1,5 +1,15 @@
 # 本地调试用：把本文件复制为 .dev.vars（wrangler dev 会自动读取），勿提交。
 # 生产环境请用 `wrangler secret put` 注入，不要依赖本文件。
+
+# —— 化验单视觉解读（原有） ——
 VISION_API_BASE=https://api.openai.com/v1
 VISION_API_KEY=sk-替换为你的视觉模型Key
 VISION_MODEL=gpt-4o-mini
+
+# —— 智能问答（豆包大模型 / 火山引擎 Ark，新增） ——
+# 豆包 API 为 OpenAI 兼容格式，base 固定如下：
+CHAT_API_BASE=https://ark.cn-beijing.volces.com/api/v3
+# 在火山引擎 Ark 控制台创建 API Key 后填入：
+CHAT_API_KEY=替换为你的豆包API Key
+# 在 Ark 控制台「在线推理」创建模型接入点，获得推理接入点 ID（ep- 开头），填入此处：
+CHAT_MODEL=ep-xxxxxxxxxxxx-xxxxx
