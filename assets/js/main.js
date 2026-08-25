@@ -527,9 +527,38 @@
       }).join(" ");
     }
 
-    // 豆包大模型系统提示词（精简版，减少 token 加快响应）
+    // 豆包大模型系统提示词（精简版，含引用标注规则）
     var DOUBAO_SYSTEM_PROMPT =
-      "你是风语智答风湿免疫病科普助手。仅做健康科普，不诊断、不开药、不给剂量、不建议停药。遇诊断/用药/急症请求，礼貌拒绝并建议就医。回答通俗易懂，纯文本，段落空行分隔。末尾附：以上内容仅为科普参考，不能替代医师面诊，具体诊疗请遵医嘱。";
+      "你是风语智答风湿免疫病科普助手。仅做健康科普，不诊断、不开药、不给剂量、不建议停药。遇诊断/用药/急症请求，礼貌拒绝并建议就医。回答通俗易懂，纯文本，段落空行分隔。" +
+      "引用标注：涉及具体疾病知识时，在相关句子末尾标注来源编号，用方括号包裹，如[1][2]。来源对应：[1]《类风湿关节炎诊疗指南（科普版）》中华医学会风湿病学分会；[2]《自身抗体检测临床意义专家共识》；[3]患者教育手册：读懂化验单。不确定来源时不标注。" +
+      "末尾附：以上内容仅为科普参考，不能替代医师面诊，具体诊疗请遵医嘱。";
+
+    // 等待期间轮播的科普小知识
+    var FUN_FACTS = [
+      "类风湿关节炎患者中约 70%-80% 会出现类风湿因子升高",
+      "晨僵持续超过 30 分钟是类风湿关节炎的典型表现之一",
+      "系统性红斑狼疮因面颊部蝶形红斑而得名，形似蝴蝶",
+      "痛风最常发作于大脚趾第一跖趾关节，红肿热痛剧烈",
+      "干燥综合征患者常需反复饮水，部分人吃干粮需用水送服",
+      "强直性脊柱炎多见于年轻男性，腰背痛夜间加重、活动后缓解",
+      "人体免疫系统有时会\"认错人\"攻击自身组织，这就是自身免疫病",
+      "高尿酸血症患者中只有约 10% 会发展为痛风",
+      "规范使用激素能快速控制炎症，自行停药可能导致病情反跳",
+      "风湿免疫病患者补钙和维生素D有助于预防激素相关骨质疏松",
+    ];
+
+    // 把回答中的 [1][2][3] 渲染为可点击的引用按钮
+    function renderReplyWithCitations(text) {
+      var html = esc(text).replace(/\n/g, "<br>");
+      html = html.replace(/\[(\d+)\]/g, function (match, num) {
+        return (
+          '<button type="button" class="cite" data-modal="sourceModal" aria-haspopup="dialog">[' +
+          num +
+          "]</button>"
+        );
+      });
+      return html;
+    }
 
     // 渲染本地规则匹配的兜底回答（API 不可用时使用）
     function renderFallback(typing, text) {
@@ -556,15 +585,27 @@
 
       var typing = addMsg("ai", "正在思考…");
       var cfg = window.DOUBAO_CONFIG || {};
-      var apiKey = localStorage.getItem("doubao_api_key") || "";
+      // 优先用用户自定义 Key，否则用内置的 base64 编码默认 Key
+      var apiKey = localStorage.getItem("doubao_api_key") || (cfg.defaultKeyB64 ? atob(cfg.defaultKeyB64) : "");
 
-      // 未配置 API Key 时，弹出配置弹窗，不发起请求
-      if (!apiKey) {
-        typing.querySelector(".bubble").innerHTML =
-          '请先点击下方「配置 API Key」填入豆包 API Key 后再提问。';
-        pending = false;
-        if (window.FYZD && window.FYZD.openModal) window.FYZD.openModal("configModal");
-        return;
+      var bubble = typing.querySelector(".bubble");
+
+      // —— 等待期间轮播科普小知识 ——
+      var factEl = document.createElement("span");
+      factEl.style.cssText = "display:block;color:var(--muted);font-size:13px;margin-top:8px;";
+      bubble.appendChild(factEl);
+      var factIdx = Math.floor(Math.random() * FUN_FACTS.length);
+      factEl.textContent = "💡 " + FUN_FACTS[factIdx];
+      var factTimer = setInterval(function () {
+        factIdx = (factIdx + 1) % FUN_FACTS.length;
+        factEl.textContent = "💡 " + FUN_FACTS[factIdx];
+      }, 2800);
+      var factCleared = false;
+      function clearFact() {
+        if (factCleared) return;
+        factCleared = true;
+        clearInterval(factTimer);
+        if (factEl && factEl.parentNode) factEl.parentNode.removeChild(factEl);
       }
 
       // 直接调用豆包大模型 API（流式输出，逐字显示减少等待感）；失败则降级到本地规则科普库
@@ -592,11 +633,11 @@
           var decoder = new TextDecoder();
           var buffer = "";
           var fullReply = "";
-          var bubble = typing.querySelector(".bubble");
 
           function readChunk() {
             reader.read().then(function (chunk) {
               if (chunk.done) {
+                clearFact();
                 pending = false;
                 if (!fullReply) renderFallback(typing, text);
                 return;
@@ -615,14 +656,16 @@
                   var delta =
                     json.choices && json.choices[0] && json.choices[0].delta && json.choices[0].delta.content;
                   if (delta) {
+                    clearFact();
                     fullReply += delta;
-                    bubble.innerHTML = esc(fullReply).replace(/\n/g, "<br>");
+                    bubble.innerHTML = renderReplyWithCitations(fullReply);
                   }
                 } catch (e) { /* 忽略单条解析错误 */ }
               });
 
               readChunk();
             }).catch(function () {
+              clearFact();
               if (!fullReply) renderFallback(typing, text);
               pending = false;
             });
@@ -631,6 +674,7 @@
         })
         .catch(function () {
           // 静默降级：网络异常 / 密钥错误 / 调用失败时，回退本地规则匹配
+          clearFact();
           renderFallback(typing, text);
           pending = false;
         });
@@ -669,11 +713,11 @@
       var key = localStorage.getItem("doubao_api_key") || "";
       if (statusEl) {
         if (key) {
-          statusEl.textContent = "当前已配置：" + key.slice(0, 12) + "…" + key.slice(-4);
+          statusEl.textContent = "当前使用自定义 Key：" + key.slice(0, 12) + "…" + key.slice(-4);
           statusEl.style.color = "var(--success, #2a9d5c)";
         } else {
-          statusEl.textContent = "尚未配置 API Key";
-          statusEl.style.color = "var(--danger, #d9534f)";
+          statusEl.textContent = "当前使用内置默认 Key（可在下方替换为自己的 Key）";
+          statusEl.style.color = "var(--muted)";
         }
       }
       input.value = key || "";
