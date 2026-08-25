@@ -527,11 +527,17 @@
       }).join(" ");
     }
 
+    // 渲染本地规则匹配的兜底回答（API 不可用时使用）
+    function renderFallback(typing, text) {
+      var res = findAnswer(text);
+      typing.querySelector(".bubble").innerHTML = esc(res.a) + citeHTML(res.src);
+    }
+
     function answer(text) {
       if (pending) return;
       pending = true;
 
-      // 先做红线拦截：命中则渲染「安全提示」拒答气泡
+      // 先做红线拦截：命中则渲染「安全提示」拒答气泡（不调用大模型）
       var refused = matchRedline(text);
       if (refused) {
         var typingR = addMsg("ai", "正在判断提问是否可以回答…");
@@ -544,12 +550,35 @@
         return;
       }
 
-      var typing = addMsg("ai", "正在查询科普资料…");
-      setTimeout(function () {
-        var res = findAnswer(text);
-        typing.querySelector(".bubble").innerHTML = esc(res.a) + citeHTML(res.src);
-        pending = false;
-      }, 360);
+      var typing = addMsg("ai", "正在思考…");
+      var API_URL = window.CHAT_API_URL || "/api/chat";
+
+      // 优先调用豆包大模型；失败则降级到本地规则科普库
+      fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
+      })
+        .then(function (r) {
+          return r.json().then(function (j) {
+            if (!r.ok) throw new Error(j.error || ("服务异常 " + r.status));
+            return j;
+          });
+        })
+        .then(function (data) {
+          if (data && data.reply) {
+            // 大模型返回纯文本，换行转 <br>
+            typing.querySelector(".bubble").innerHTML =
+              esc(data.reply).replace(/\n/g, "<br>");
+          } else {
+            throw new Error("返回格式异常");
+          }
+        })
+        .catch(function () {
+          // 静默降级：后端未部署 / 密钥未配 / 网络异常时，回退本地规则匹配
+          renderFallback(typing, text);
+        })
+        .then(function () { pending = false; });
     }
 
     function send() {
