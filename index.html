@@ -66,6 +66,7 @@
         </form>
         <p style="text-align:center;color:var(--muted);font-size:13px;margin:4px 0 0;">
           由 <strong style="color:var(--primary);">豆包大模型</strong> 驱动 · 本问答为健康科普参考，不构成医疗建议；角标 <span class="cite" style="cursor:default;">[1]</span> 可查看引用来源。
+          <button type="button" class="link-btn" data-modal="configModal" style="margin-left:6px;">配置 API Key</button>
         </p>
       </div>
     </div>
@@ -92,8 +93,36 @@
     </div>
   </div>
 
-  <!-- 豆包大模型问答接口地址（Cloudflare Worker） -->
-  <script>window.CHAT_API_URL = "https://fengyu-interpret.zihang-chen02.workers.dev/api/chat";</script>
+  <!-- 豆包大模型配置（API Key 由用户在页面配置，保存在 localStorage，不写入代码） -->
+  <script>
+  window.DOUBAO_CONFIG = {
+    apiUrl: "https://ark.cn-beijing.volces.com/api/v3/chat/completions",
+    model: "ep-20260825222556-xd4hc"
+  };
+  </script>
+
+  <!-- API Key 配置弹窗 -->
+  <div class="modal" id="configModal" role="dialog" aria-modal="true" aria-labelledby="configTitle" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <h3 id="configTitle">豆包大模型配置</h3>
+        <button class="modal-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin:0 0 12px;color:var(--muted);font-size:13px;">
+          首次使用需填入你的火山引擎 Ark API Key。Key 仅保存在当前浏览器（localStorage），不会上传到任何服务器。
+        </p>
+        <label for="doubaoKeyInput" style="display:block;font-weight:600;margin-bottom:6px;">API Key</label>
+        <input type="password" id="doubaoKeyInput" placeholder="ark-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+          style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;box-sizing:border-box;">
+        <p id="configStatus" style="margin:8px 0 0;font-size:13px;color:var(--muted);"></p>
+        <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;">
+          <button type="button" class="btn" data-close>取消</button>
+          <button type="button" class="btn btn-primary" id="saveConfigBtn">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="assets/js/main.js"></script>
 </body>
