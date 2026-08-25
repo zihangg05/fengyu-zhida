@@ -2,14 +2,23 @@ name = "fengyu-interpret"
 main = "worker.js"
 compatibility_date = "2025-01-01"
 
+# 本 Worker 提供两个接口：
+#   POST /api/interpret  —— 化验单视觉解读（上传图片 → OCR + 科普解读 JSON）
+#   POST /api/chat       —— 豆包大模型智能问答（用户提问 → 科普回答 JSON）
+#
 # 部署到 Cloudflare 后，Worker 默认地址为：
-#   https://fengyu-interpret.<你的-workers-子域>.workers.dev/api/interpret
+#   https://fengyu-interpret.<你的-workers-子域>.workers.dev
 # 也可在 Cloudflare 控制台给该 Worker 绑定自定义域名。
 #
-# 密钥（务必用 secret 注入，勿明文写进本文件或提交）：
+# —— 密钥（务必用 secret 注入，勿明文写进本文件或提交） ——
+# 化验单视觉解读：
 #   wrangler secret put VISION_API_KEY
 #   wrangler secret put VISION_API_BASE      # 可选，默认 https://api.openai.com/v1
 #   wrangler secret put VISION_MODEL         # 可选，默认 gpt-4o-mini
+# 豆包大模型问答：
+#   wrangler secret put CHAT_API_KEY
+#   wrangler secret put CHAT_MODEL           # 推理接入点 ID（ep- 开头），必填
+#   wrangler secret put CHAT_API_BASE        # 可选，默认 https://ark.cn-beijing.volces.com/api/v3
 #
 # 若用 API Token 部署（而非 wrangler login），取消注释并填入你的 Account ID：
 # account_id = "你的-cloudflare-account-id"
@@ -18,3 +27,4 @@ compatibility_date = "2025-01-01"
 [vars]
 VISION_API_BASE = "https://api.openai.com/v1"
 VISION_MODEL = "gpt-4o-mini"
+CHAT_API_BASE = "https://ark.cn-beijing.volces.com/api/v3"
