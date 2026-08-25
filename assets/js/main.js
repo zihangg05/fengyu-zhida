@@ -527,15 +527,9 @@
       }).join(" ");
     }
 
-    // 豆包大模型系统提示词（医疗安全约束，前端直连时使用）
+    // 豆包大模型系统提示词（精简版，减少 token 加快响应）
     var DOUBAO_SYSTEM_PROMPT =
-      "你是\"风语智答\"科普助手，面向大众提供风湿免疫病相关的健康科普参考。\n" +
-      "请严格遵守以下规则：\n" +
-      "1. 仅做健康科普知识讲解，不做诊断、不开处方、不给具体用药剂量、不建议停药或替代正规治疗、不对个人病情下结论。\n" +
-      "2. 当用户要求诊断、开药、调整剂量、判断自己得了什么病、询问紧急症状怎么办时，礼貌拒绝并建议前往正规医院风湿免疫科就诊，急症提示拨打 120。\n" +
-      "3. 回答通俗易懂，避免堆砌专业术语；涉及检验指标时说明其一般临床意义，不针对个人结果做判断。\n" +
-      "4. 回答使用纯文本，段落之间用空行分隔，不使用 Markdown 格式。\n" +
-      "5. 每次回答末尾自然附上一句免责声明：\"以上内容仅为科普参考，不能替代医师面诊，具体诊疗请遵医嘱。\"";
+      "你是风语智答风湿免疫病科普助手。仅做健康科普，不诊断、不开药、不给剂量、不建议停药。遇诊断/用药/急症请求，礼貌拒绝并建议就医。回答通俗易懂，纯文本，段落空行分隔。末尾附：以上内容仅为科普参考，不能替代医师面诊，具体诊疗请遵医嘱。";
 
     // 渲染本地规则匹配的兜底回答（API 不可用时使用）
     function renderFallback(typing, text) {
@@ -573,7 +567,7 @@
         return;
       }
 
-      // 直接调用豆包大模型 API；失败则降级到本地规则科普库
+      // 直接调用豆包大模型 API（流式输出，逐字显示减少等待感）；失败则降级到本地规则科普库
       fetch(cfg.apiUrl || "https://ark.cn-beijing.volces.com/api/v3/chat/completions", {
         method: "POST",
         headers: {
@@ -583,32 +577,63 @@
         body: JSON.stringify({
           model: cfg.model || "",
           temperature: 0.3,
+          stream: true,
           messages: [
             { role: "system", content: DOUBAO_SYSTEM_PROMPT },
             { role: "user", content: text },
           ],
         }),
       })
-        .then(function (r) {
-          return r.json().then(function (j) {
-            if (!r.ok) throw new Error((j.error && j.error.message) || ("服务异常 " + r.status));
-            return j;
-          });
-        })
-        .then(function (data) {
-          var reply =
-            data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-          if (reply) {
-            typing.querySelector(".bubble").innerHTML = esc(reply).replace(/\n/g, "<br>");
-          } else {
-            throw new Error("返回格式异常");
+        .then(function (response) {
+          if (!response.ok) throw new Error("服务异常 " + response.status);
+          if (!response.body) throw new Error("不支持流式响应");
+
+          var reader = response.body.getReader();
+          var decoder = new TextDecoder();
+          var buffer = "";
+          var fullReply = "";
+          var bubble = typing.querySelector(".bubble");
+
+          function readChunk() {
+            reader.read().then(function (chunk) {
+              if (chunk.done) {
+                pending = false;
+                if (!fullReply) renderFallback(typing, text);
+                return;
+              }
+              buffer += decoder.decode(chunk.value, { stream: true });
+              var lines = buffer.split("\n");
+              buffer = lines.pop() || "";
+
+              lines.forEach(function (line) {
+                line = line.trim();
+                if (!line || line.indexOf("data:") !== 0) return;
+                var data = line.slice(5).trim();
+                if (data === "[DONE]") return;
+                try {
+                  var json = JSON.parse(data);
+                  var delta =
+                    json.choices && json.choices[0] && json.choices[0].delta && json.choices[0].delta.content;
+                  if (delta) {
+                    fullReply += delta;
+                    bubble.innerHTML = esc(fullReply).replace(/\n/g, "<br>");
+                  }
+                } catch (e) { /* 忽略单条解析错误 */ }
+              });
+
+              readChunk();
+            }).catch(function () {
+              if (!fullReply) renderFallback(typing, text);
+              pending = false;
+            });
           }
+          readChunk();
         })
         .catch(function () {
           // 静默降级：网络异常 / 密钥错误 / 调用失败时，回退本地规则匹配
           renderFallback(typing, text);
-        })
-        .then(function () { pending = false; });
+          pending = false;
+        });
     }
 
     function send() {
