@@ -119,7 +119,7 @@
 
     // 前端直连豆包视觉大模型解读化验单
     function callVisionModel(dataUrl) {
-      var apiKey = localStorage.getItem("doubao_api_key") || (cfg.defaultKeyB64 ? atob(cfg.defaultKeyB64) : "");
+      var apiKey = localStorage.getItem("doubao_api_key") || (cfg.visionKeyB64 ? atob(cfg.visionKeyB64) : (cfg.defaultKeyB64 ? atob(cfg.defaultKeyB64) : ""));
       var systemPrompt =
         "你是风湿免疫病化验单解读助手。请仔细识别图片中的所有检验指标，返回严格的JSON格式，不要输出任何其他文字。" +
         "JSON格式：{\"metrics\":[{\"name\":\"指标全称\",\"value\":\"检测值含单位\",\"range\":\"参考范围\",\"status\":\"high或low或normal或unknown\",\"note\":\"该指标异常的简要科普说明，正常则留空\"}],\"summary\":\"整体情况的一句话总结\",\"disclaimer\":\"本解读仅供科普参考，不能替代医师面诊与诊断。\"}" +
