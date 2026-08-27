@@ -93,13 +93,13 @@
     </div>
   </div>
 
-  <!-- 豆包大模型配置（默认 Key 经 base64 编码内置，首次打开即可使用；用户可在配置弹窗替换为自己的 Key） -->
+  <!-- 大模型配置（智谱AI，默认 Key 经 base64 编码内置，首次打开即可使用） -->
   <script>
   window.DOUBAO_CONFIG = {
-    apiUrl: "https://ark.cn-beijing.volces.com/api/v3/chat/completions",
-    model: "doubao-1-5-lite-32k-250115",
-    visionModel: "doubao-1-5-vision-pro-32k-250115",
-    defaultKeyB64: "YXJrLTQ5NzI1YTI5LWNlYTEtNGJlMS1hNGMyLTE0YmYxNTRiZjUzYS0wYmE0NQ=="
+    apiUrl: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+    model: "glm-4-flash",
+    visionModel: "glm-4v-flash",
+    defaultKeyB64: "MmZlZTAxODM1MWY5NGY3Yzk1OGNlYjBmZmFjNmMxYTEuUXFYNm9Oc2xGdmlGNnRPdw=="
   };
   </script>
 
@@ -107,7 +107,7 @@
   <div class="modal" id="configModal" role="dialog" aria-modal="true" aria-labelledby="configTitle" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-head">
-        <h3 id="configTitle">豆包大模型配置</h3>
+        <h3 id="configTitle">大模型 API 配置</h3>
         <button class="modal-close" aria-label="关闭">&times;</button>
       </div>
       <div class="modal-body">
@@ -115,7 +115,7 @@
           已内置默认 API Key，开箱即用。如需使用自己的 Key，可在下方填入替换。Key 仅保存在当前浏览器（localStorage），不会上传到任何服务器。
         </p>
         <label for="doubaoKeyInput" style="display:block;font-weight:600;margin-bottom:6px;">API Key</label>
-        <input type="password" id="doubaoKeyInput" placeholder="ark-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+        <input type="password" id="doubaoKeyInput" placeholder="请输入您的 API Key"
           style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;box-sizing:border-box;">
         <p id="configStatus" style="margin:8px 0 0;font-size:13px;color:var(--muted);"></p>
         <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;">
@@ -126,6 +126,6 @@
     </div>
   </div>
 
-  <script src="assets/js/main.js?v=20260827"></script>
+  <script src="assets/js/main.js?v=20260827z"></script>
 </body>
 </html>
