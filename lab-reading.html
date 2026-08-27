@@ -106,15 +106,15 @@
     <p>⚠ 全部内容仅为科普参考，不构成任何专业建议，不能替代医师面诊，身体异常请前往医院专科就诊。</p>
   </footer>
 
+  <!-- 大模型配置（豆包/火山引擎，默认 Key 经 base64 编码内置） -->
   <script>
-    // 化验单解读后端地址（独立 Cloudflare Worker）：
-    // 本站前端托管在 GitHub Pages（纯静态，无服务端运行时），无法执行 /api/interpret，
-    // 因此必须指向单独部署的 Worker。部署后把下面 <子域> 替换成你的
-    // *.workers.dev 子域（或绑定的自定义域名）即可，例如
-    //   "https://fengyu-interpret.zihang.workers.dev/api/interpret"
-    // 留空或写 "/api/interpret" 仅在整站迁移到 Cloudflare Pages 时才可用。
-    window.LAB_API_URL = "https://fengyu-interpret.<子域>.workers.dev/api/interpret";
+  window.DOUBAO_CONFIG = {
+    apiUrl: "https://ark.cn-beijing.volces.com/api/v3/chat/completions",
+    model: "ep-20260825222556-xd4hc",
+    visionModel: "ep-20260827231246-dd2k7",
+    defaultKeyB64: "YXJrLTdhNDA2YWEwLTE3MDUtNGQzOS1hOTYwLWZlOGU4OTIzZmU4My0xYTA4Mw=="
+  };
   </script>
-  <script src="assets/js/main.js"></script>
+  <script src="assets/js/main.js?v=20260827d"></script>
 </body>
 </html>
