@@ -97,8 +97,65 @@
     var titleEl = document.getElementById("labResultTitle");
     if (!btn || !fileInput || !state1 || !state2) return;
 
-    var API_URL = window.LAB_API_URL || "/api/interpret";
+    var cfg = window.DOUBAO_CONFIG || {};
     var busy = false;
+
+    // 从模型输出中稳健提取 JSON（兼容 markdown 代码围栏、前后多余文字）
+    function extractJSON(text) {
+      if (!text) return null;
+      // 尝试直接解析
+      try { return JSON.parse(text); } catch (e) {}
+      // 去除 ```json ... ``` 围栏
+      var m = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+      if (m) { try { return JSON.parse(m[1]); } catch (e) {} }
+      // 提取第一个 { 到最后一个 }
+      var start = text.indexOf("{");
+      var end = text.lastIndexOf("}");
+      if (start >= 0 && end > start) {
+        try { return JSON.parse(text.slice(start, end + 1)); } catch (e) {}
+      }
+      return null;
+    }
+
+    // 前端直连豆包视觉大模型解读化验单
+    function callVisionModel(dataUrl) {
+      var apiKey = localStorage.getItem("doubao_api_key") || (cfg.defaultKeyB64 ? atob(cfg.defaultKeyB64) : "");
+      var systemPrompt =
+        "你是风湿免疫病化验单解读助手。请仔细识别图片中的所有检验指标，返回严格的JSON格式，不要输出任何其他文字。" +
+        "JSON格式：{\"metrics\":[{\"name\":\"指标全称\",\"value\":\"检测值含单位\",\"range\":\"参考范围\",\"status\":\"high或low或normal或unknown\",\"note\":\"该指标异常的简要科普说明，正常则留空\"}],\"summary\":\"整体情况的一句话总结\",\"disclaimer\":\"本解读仅供科普参考，不能替代医师面诊与诊断。\"}" +
+        "status判断：高于参考范围为high，低于为low，在范围内为normal，无法判断为unknown。只识别图片中实际存在的指标，不要编造。";
+      return fetch(cfg.apiUrl || "https://ark.cn-beijing.volces.com/api/v3/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + apiKey,
+        },
+        body: JSON.stringify({
+          model: cfg.visionModel || "doubao-1-5-vision-pro-32k-250115",
+          temperature: 0.1,
+          stream: false,
+          messages: [
+            { role: "system", content: systemPrompt },
+            {
+              role: "user",
+              content: [
+                { type: "text", text: "请解读这张化验单，返回JSON。" },
+                { type: "image_url", image_url: { url: dataUrl } },
+              ],
+            },
+          ],
+        }),
+      })
+        .then(function (r) {
+          return r.json().then(function (j) {
+            if (!r.ok) throw new Error((j.error && j.error.message) || ("服务异常 " + r.status));
+            var content = j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
+            var data = extractJSON(content);
+            if (!data) throw new Error("模型返回格式异常");
+            return data;
+          });
+        });
+    }
 
     function setStatus(msg, kind) {
       if (!statusEl) return;
@@ -184,23 +241,13 @@
 
       fileToResizedDataURL(file, 1280, 0.85)
         .then(function (dataUrl) {
-          return fetch(API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ image: dataUrl }),
-          });
-        })
-        .then(function (r) {
-          return r.json().then(function (j) {
-            if (!r.ok) throw new Error(j.error || ("服务异常 " + r.status));
-            return j;
-          });
+          return callVisionModel(dataUrl);
         })
         .then(function (data) { setStatus(""); renderMetrics(data); })
-        .catch(function () {
-          // 静默演示模式：后端未部署/不可达时不弹错误，直接展示演示解读
+        .catch(function (err) {
+          // 静默演示模式：视觉模型不可用时不弹错误，直接展示演示解读
           if (titleEl) titleEl.textContent = "指标解读（演示示例）";
-          setStatus("演示模式：AI 解读服务暂未接入，以上为示例解读，仅供参考。", "demo");
+          setStatus("演示模式：AI 解读服务暂不可用，以上为示例解读，仅供参考。", "demo");
         })
         .then(function () { busy = false; });
     }
