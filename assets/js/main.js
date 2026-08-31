@@ -1048,6 +1048,8 @@
               if (chunk.done) {
                 clearFact(); pending = false;
                 if (!fullReply) { renderFallback(typing, text); finishTurn(text, "", sources, chunks, startedAt, true); return; }
+                fullReply = ensureCitations(fullReply, chunks);
+                bubble.innerHTML = renderReplyWithCitations(fullReply);
                 attachActionBar(typing, fullReply, true);
                 finishTurn(text, fullReply, sources, chunks, startedAt, false);
                 return;
@@ -1074,7 +1076,7 @@
             }).catch(function () {
               clearFact(); pending = false;
               if (!fullReply) { renderFallback(typing, text); finishTurn(text, "", sources, chunks, startedAt, true); }
-              else { attachActionBar(typing, fullReply, true); finishTurn(text, fullReply, sources, chunks, startedAt, false); }
+              else { fullReply = ensureCitations(fullReply, chunks); bubble.innerHTML = renderReplyWithCitations(fullReply); attachActionBar(typing, fullReply, true); finishTurn(text, fullReply, sources, chunks, startedAt, false); }
             });
           }
           readChunk();
@@ -1086,6 +1088,16 @@
           finishTurn(text, fb.a, sources, chunks, startedAt, true);
           pending = false;
         });
+    }
+
+    // 引用兜底：检索到指南片段但模型漏标行内编号时，自动补上来源角标，保证可溯源
+    function ensureCitations(reply, chunks) {
+      if (!chunks || !chunks.length || /\[\d+\]/.test(reply)) return reply;
+      var srcs = chunks.map(function (c) { return c.src; }).filter(function (v, i, a) { return a.indexOf(v) === i; });
+      if (!srcs.length) return reply;
+      var tag = "（参考来源 " + srcs.map(function (x) { return "[" + x + "]"; }).join("") + "）";
+      if (/以上内容仅为科普参考/.test(reply)) return reply.replace(/(以上内容仅为科普参考)/, tag + "\n$1");
+      return reply.replace(/\s+$/, "") + "\n" + tag;
     }
 
     // 一轮结束：写入多轮历史、持久化、更新日志
