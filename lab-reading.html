@@ -9,7 +9,7 @@
   <meta property="og:description" content="风湿免疫病化验单科普解读演示（原型）">
   <meta property="og:type" content="website">
   <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/style.css?v=20260831b">
 </head>
 <body>
   <header class="site-header">
@@ -50,6 +50,9 @@
           <input type="file" id="labFile" accept="image/*" hidden>
           <button class="btn btn-primary" id="uploadBtn" type="button">选择文件并解读</button>
         </div>
+        <div class="sample-row">
+          <button class="sample-btn" id="sampleBtn" type="button">没有化验单？点此体验示例解读</button>
+        </div>
       </div>
 
       <!-- 状态提示（加载/错误） -->
@@ -57,6 +60,10 @@
 
       <!-- 状态 2：报告解读 -->
       <div id="reportState" hidden>
+        <div class="critical-banner" id="criticalBanner" role="alert">
+          <span class="cb-icon">⚠</span>
+          <div><strong>检测到明显异常指标。</strong><span id="criticalText">请尽快携带化验单到风湿免疫科就诊评估，以下解读不能替代医师诊断。</span></div>
+        </div>
         <div class="report-grid">
           <div class="report-figure">
             <img id="labPreview" class="lab-preview" alt="您上传的化验单" hidden>
@@ -116,6 +123,6 @@
     visionKeyB64: "YXJrLTdhNDA2YWEwLTE3MDUtNGQzOS1hOTYwLWZlOGU4OTIzZmU4My0xYTA4Mw=="
   };
   </script>
-  <script src="assets/js/main.js?v=20260827g"></script>
+  <script src="assets/js/main.js?v=20260831b"></script>
 </body>
 </html>
