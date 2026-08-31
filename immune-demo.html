@@ -9,7 +9,7 @@
   <meta property="og:description" content="关节免疫机制科普演示（原型）">
   <meta property="og:type" content="website">
   <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/style.css?v=20260831b">
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 </head>
 <body>
@@ -200,6 +200,10 @@
       <div class="modal-body">
         <p><strong>滑膜</strong>是衬在关节腔内壁的一层薄膜组织，由滑膜细胞构成。它的主要作用是分泌<strong>滑液</strong>，起到润滑关节、营养软骨、减少摩擦的功能。</p>
         <p>在类风湿关节炎等风湿免疫病中，滑膜可能出现异常增生与炎症（滑膜炎），长期炎症可侵蚀软骨与骨组织。因此保护滑膜健康对维持关节功能十分重要。</p>
+        <div class="ai-explain-box">
+          <button class="btn btn-primary btn-sm" type="button" data-ai="synovium">🤖 AI 实时深入讲解</button>
+          <div class="ai-explain-text" id="aiSynovium" hidden></div>
+        </div>
         <p style="color:var(--muted);font-size:13px;margin-bottom:0;">* 以上内容仅为科普示意，具体诊疗请遵医嘱。</p>
       </div>
     </div>
@@ -215,6 +219,10 @@
       <div class="modal-body">
         <p><strong>关节软骨</strong>是覆盖在骨端表面的一层光滑、有弹性的结缔组织，能在活动时缓冲压力、减少磨损；其下方为<strong>骨组织</strong>，构成骨骼支撑结构。</p>
         <p>软骨本身血供较少、修复能力有限。当炎症或机械损伤长期存在时，软骨可能变薄、破坏，进而导致关节疼痛、畸形与活动障碍。</p>
+        <div class="ai-explain-box">
+          <button class="btn btn-primary btn-sm" type="button" data-ai="cartilage">🤖 AI 实时深入讲解</button>
+          <div class="ai-explain-text" id="aiCartilage" hidden></div>
+        </div>
         <p style="color:var(--muted);font-size:13px;margin-bottom:0;">* 以上内容仅为科普示意，具体诊疗请遵医嘱。</p>
       </div>
     </div>
@@ -224,6 +232,16 @@
     <p>⚠ 全部内容仅为科普参考，不构成任何专业建议，不能替代医师面诊，身体异常请前往医院专科就诊。</p>
   </footer>
 
-  <script src="assets/js/main.js"></script>
+  <!-- 大模型配置（与问答页一致，默认 Key 经 base64 编码内置） -->
+  <script>
+  window.DOUBAO_CONFIG = {
+    apiUrl: "https://ark.cn-beijing.volces.com/api/v3/chat/completions",
+    model: "ep-20260827232351-hndlx",
+    visionModel: "ep-20260827234248-4d8ct",
+    defaultKeyB64: "YXJrLTI4YjNjOTFlLTdlYjUtNDcyNC1iOTU2LTBhNmNlNmVlYzQzYy1mY2U1Mg==",
+    visionKeyB64: "YXJrLTdhNDA2YWEwLTE3MDUtNGQzOS1hOTYwLWZlOGU4OTIzZmU4My0xYTA4Mw=="
+  };
+  </script>
+  <script src="assets/js/main.js?v=20260831b"></script>
 </body>
 </html>
