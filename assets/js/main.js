@@ -95,20 +95,65 @@
     var summaryEl = document.getElementById("labSummary");
     var disclaimerEl = document.getElementById("labDisclaimer");
     var titleEl = document.getElementById("labResultTitle");
+    var criticalBanner = document.getElementById("criticalBanner");
+    var criticalText = document.getElementById("criticalText");
+    var sampleBtn = document.getElementById("sampleBtn");
     if (!btn || !fileInput || !state1 || !state2) return;
 
     var cfg = window.DOUBAO_CONFIG || {};
     var busy = false;
+    var INDICATORS = [];
 
-    // 从模型输出中稳健提取 JSON（兼容 markdown 代码围栏、前后多余文字）
+    // 加载风湿免疫指标科普映射库（指标名归一化 + 审核过的通俗解读）
+    fetch("assets/data/lab-indicators.json")
+      .then(function (r) { return r.json(); })
+      .then(function (d) { INDICATORS = d.indicators || []; })
+      .catch(function () { INDICATORS = []; });
+
+    // 指标名归一化：把模型识别出的名称匹配到字典条目
+    function matchIndicator(name) {
+      if (!name || !INDICATORS.length) return null;
+      var norm = function (s) { return String(s || "").toLowerCase().replace(/[\s\(\)（）\-\/\\,，。.%:：]/gu, ""); };
+      var target = norm(name);
+      if (!target) return null;
+      var best = null, bestLen = 0;
+      INDICATORS.forEach(function (ind) {
+        (ind.keys || []).forEach(function (k) {
+          var nk = norm(k);
+          if (!nk) return;
+          if ((target.indexOf(nk) >= 0 || nk.indexOf(target) >= 0) && nk.length > bestLen) {
+            best = ind; bestLen = nk.length;
+          }
+        });
+      });
+      return best;
+    }
+
+    // 危急值/高度异常判定：结合重点指标与数值阈值
+    var CRITICAL_KEYS = ["血小板", "PLT", "白细胞", "WBC", "血红蛋白", "HGB", "肌酐", "尿蛋白", "ANCA", "抗dsDNA", "抗双链DNA", "抗中性粒细胞"];
+    function numOf(v) {
+      var m = String(v || "").match(/-?\d+(\.\d+)?/);
+      return m ? parseFloat(m[0]) : null;
+    }
+    function isCritical(m, ind) {
+      if (m.status === "normal" || m.status === "unknown") return false;
+      var name = m.name || "";
+      var n = numOf(m.value);
+      // 数值型危急阈值
+      if (/血小板|PLT/i.test(name) && n !== null && n < 50) return true;
+      if (/白细胞|WBC/i.test(name) && n !== null && (n < 3 || n > 20)) return true;
+      if (/血红蛋白|HGB/i.test(name) && n !== null && n < 70) return true;
+      if (/肌酐|Cr/i.test(name) && n !== null && n > 177) return true;
+      // 重点免疫指标显著异常
+      var hitKey = CRITICAL_KEYS.some(function (k) { return name.indexOf(k) >= 0; });
+      return hitKey;
+    }
+
     function extractJSON(text) {
       if (!text) return null;
-      // 尝试直接解析
       try { return JSON.parse(text); } catch (e) {}
-      // 去除 ```json ... ``` 围栏
       var m = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
       if (m) { try { return JSON.parse(m[1]); } catch (e) {} }
-      // 提取第一个 { 到最后一个 }
       var start = text.indexOf("{");
       var end = text.lastIndexOf("}");
       if (start >= 0 && end > start) {
@@ -117,7 +162,6 @@
       return null;
     }
 
-    // 前端直连豆包视觉大模型解读化验单
     function callVisionModel(dataUrl) {
       var apiKey = localStorage.getItem("doubao_api_key") || (cfg.visionKeyB64 ? atob(cfg.visionKeyB64) : (cfg.defaultKeyB64 ? atob(cfg.defaultKeyB64) : ""));
       var systemPrompt =
@@ -126,23 +170,17 @@
         "status判断：高于参考范围为high，低于为low，在范围内为normal，无法判断为unknown。只识别图片中实际存在的指标，不要编造。";
       return fetch(cfg.apiUrl || "https://ark.cn-beijing.volces.com/api/v3/chat/completions", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + apiKey,
-        },
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + apiKey },
         body: JSON.stringify({
           model: cfg.visionModel || "doubao-1-5-vision-pro-32k-250115",
           temperature: 0.1,
           stream: false,
           messages: [
             { role: "system", content: systemPrompt },
-            {
-              role: "user",
-              content: [
-                { type: "text", text: "请解读这张化验单，返回JSON。" },
-                { type: "image_url", image_url: { url: dataUrl } },
-              ],
-            },
+            { role: "user", content: [
+              { type: "text", text: "请解读这张化验单，返回JSON。" },
+              { type: "image_url", image_url: { url: dataUrl } },
+            ]},
           ],
         }),
       })
@@ -181,21 +219,42 @@
         if (data && data.summary) { summaryEl.textContent = data.summary; summaryEl.hidden = false; }
         else summaryEl.hidden = true;
       }
+      var criticalNames = [];
       if (!metrics.length) {
         metricsEl.innerHTML =
           '<div class="metric"><div class="note">未能从图片中识别出明确指标，建议上传清晰、完整的化验单，或咨询专科医师。</div></div>';
       } else {
         metricsEl.innerHTML = metrics.map(function (m) {
           var cls = statusClassOf(m.status);
+          var ind = matchIndicator(m.name);
+          var canonical = ind ? ind.name : (m.name || "指标");
           var val = esc(m.value || "") + " " + statusTextOf(m.status);
-          var range = m.range ? "参考范围：" + esc(m.range) : "";
+          var range = m.range ? "参考范围：" + esc(m.range) : (ind && ind.normal ? "参考范围：" + esc(ind.normal) : "");
+          // 优先采用指标字典中经审核的科普解释，其次用模型生成的 note
+          var notes = [];
+          if (ind && ind.meaning) notes.push(ind.meaning);
+          if (m.status === "high" && ind && ind.high) notes.push(ind.high);
+          if (m.status === "low" && ind && ind.low) notes.push(ind.low);
+          if (!ind && m.note) notes.push(m.note);
+          if (ind && ind.myth) notes.push("💡 " + ind.myth);
+          var crit = isCritical(m, ind);
+          if (crit) { criticalNames.push(canonical); cls = "high"; }
           return '<div class="metric">' +
-            '<div class="row"><span class="name">' + esc(m.name || "指标") + '</span>' +
-            '<span class="val ' + cls + '">' + val + '</span></div>' +
+            '<div class="row"><span class="name">' + esc(canonical) + '</span>' +
+            '<span class="val ' + cls + (crit ? " metric-critical" : "") + '">' + val + '</span></div>' +
             (range ? '<div class="range">' + range + '</div>' : '') +
-            '<div class="note">' + esc(m.note || "") + '</div>' +
+            '<div class="note">' + notes.map(esc).join("<br>") + '</div>' +
             '</div>';
         }).join("");
+      }
+      // 危急值横幅
+      if (criticalBanner) {
+        if (criticalNames.length) {
+          criticalBanner.classList.add("show");
+          if (criticalText) criticalText.textContent = "「" + criticalNames.join("、") + "」明显异常，请尽快携带化验单到风湿免疫科就诊评估，以下解读不能替代医师诊断。";
+        } else {
+          criticalBanner.classList.remove("show");
+        }
       }
       if (disclaimerEl) {
         disclaimerEl.textContent =
@@ -204,7 +263,6 @@
       if (titleEl) titleEl.textContent = "指标解读";
     }
 
-    // 客户端压缩：限制最长边，减少上传体积与视觉模型成本
     function fileToResizedDataURL(file, maxDim, quality) {
       return new Promise(function (resolve, reject) {
         var url = URL.createObjectURL(file);
@@ -220,12 +278,27 @@
           URL.revokeObjectURL(url);
           resolve(canvas.toDataURL("image/jpeg", quality));
         };
-        img.onerror = function () {
-          URL.revokeObjectURL(url);
-          reject(new Error("图片读取失败"));
-        };
+        img.onerror = function () { URL.revokeObjectURL(url); reject(new Error("图片读取失败")); };
         img.src = url;
       });
+    }
+
+    function analyzeDataUrl(dataUrl, isSample) {
+      setStatus("正在识别化验单指标…");
+      showReport();
+      if (preview) { preview.src = dataUrl; preview.hidden = false; }
+      if (placeholder) placeholder.hidden = true;
+      if (titleEl) titleEl.textContent = "指标解读（分析中…）";
+      callVisionModel(dataUrl)
+        .then(function (data) { setStatus(""); renderMetrics(data); })
+        .catch(function () {
+          if (isSample) { renderMetrics(buildSampleResult()); setStatus(""); if (titleEl) titleEl.textContent = "指标解读（示例）"; }
+          else {
+            if (titleEl) titleEl.textContent = "指标解读（演示示例）";
+            setStatus("AI 解读服务暂不可用，请稍后重试或检查网络 / API 配置。", "error");
+          }
+        })
+        .then(function () { busy = false; });
     }
 
     function handleFile(file) {
@@ -233,23 +306,46 @@
       if (!/^image\//.test(file.type)) { setStatus("请选择图片文件（JPG / PNG）", "error"); return; }
       if (busy) return;
       busy = true;
-      setStatus("正在分析化验单…");
-      showReport();
-      if (preview) { preview.src = URL.createObjectURL(file); preview.hidden = false; }
-      if (placeholder) placeholder.hidden = true;
-      if (titleEl) titleEl.textContent = "指标解读（分析中…）";
+      fileToResizedDataURL(file, 1280, 0.85).then(function (dataUrl) { analyzeDataUrl(dataUrl, false); });
+    }
 
-      fileToResizedDataURL(file, 1280, 0.85)
-        .then(function (dataUrl) {
-          return callVisionModel(dataUrl);
-        })
-        .then(function (data) { setStatus(""); renderMetrics(data); })
-        .catch(function (err) {
-          // 静默演示模式：视觉模型不可用时不弹错误，直接展示演示解读
-          if (titleEl) titleEl.textContent = "指标解读（演示示例）";
-          setStatus("演示模式：AI 解读服务暂不可用，以上为示例解读，仅供参考。", "demo");
-        })
-        .then(function () { busy = false; });
+    // 内置示例化验单（canvas 生成，供无图体验与演示）
+    function buildSampleResult() {
+      return {
+        summary: "示例报告提示炎症指标升高、类风湿因子与抗CCP阳性，建议到风湿免疫科结合关节症状进一步评估。",
+        disclaimer: "本解读为内置示例，仅供功能演示，不能替代医师面诊与诊断。",
+        metrics: [
+          { name: "类风湿因子", value: "86 IU/mL", range: "0~20 IU/mL", status: "high", note: "" },
+          { name: "抗CCP抗体", value: "阳性（++）", range: "阴性", status: "high", note: "" },
+          { name: "C反应蛋白", value: "28 mg/L", range: "0~8 mg/L", status: "high", note: "" },
+          { name: "血沉", value: "42 mm/h", range: "男0~15/女0~20", status: "high", note: "" },
+          { name: "血尿酸", value: "352 μmol/L", range: "149~420 μmol/L", status: "normal", note: "" }
+        ]
+      };
+    }
+    function makeSampleImage() {
+      return new Promise(function (resolve) {
+        var cv = document.createElement("canvas");
+        cv.width = 560; cv.height = 400;
+        var x = cv.getContext("2d");
+        x.fillStyle = "#fff"; x.fillRect(0, 0, 560, 400);
+        x.fillStyle = "#111"; x.font = "bold 20px sans-serif";
+        x.fillText("风湿免疫检验报告单（示例）", 130, 38);
+        x.font = "15px sans-serif";
+        var rows = [
+          ["项目", "结果", "参考范围"],
+          ["类风湿因子 RF", "86 IU/mL ↑", "0~20"],
+          ["抗CCP抗体", "阳性(++) ↑", "阴性"],
+          ["C反应蛋白 CRP", "28 mg/L ↑", "0~8"],
+          ["血沉 ESR", "42 mm/h ↑", "0~20"],
+          ["血尿酸 UA", "352 μmol/L", "149~420"]
+        ];
+        rows.forEach(function (r, i) {
+          var y = 80 + i * 48;
+          x.fillText(r[0], 40, y); x.fillText(r[1], 260, y); x.fillText(r[2], 410, y);
+        });
+        resolve(cv.toDataURL("image/jpeg", 0.9));
+      });
     }
 
     btn.addEventListener("click", function () { fileInput.click(); });
@@ -262,7 +358,12 @@
     fileInput.addEventListener("change", function () {
       var f = fileInput.files && fileInput.files[0];
       handleFile(f);
-      fileInput.value = ""; // 允许重复选择同一文件
+      fileInput.value = "";
+    });
+    if (sampleBtn) sampleBtn.addEventListener("click", function () {
+      if (busy) return;
+      busy = true;
+      makeSampleImage().then(function (url) { analyzeDataUrl(url, true); });
     });
   }
 
@@ -450,13 +551,59 @@
       showToast("已导出 " + DATA.knowledge.length + " 条知识库为 CSV");
     });
 
+    /* —— 合并前端真实问答日志（localStorage）到日志表格 —— */
+    function mergeRealLogs() {
+      var real = [];
+      try { real = JSON.parse(localStorage.getItem("fyzd_qa_logs_v1") || "[]"); } catch (e) { real = []; }
+      var mapped = real.map(function (lg) {
+        var t = lg.ts ? new Date(lg.ts) : new Date();
+        var p2 = function (n) { return (n < 10 ? "0" : "") + n; };
+        var time = t.getFullYear() + "-" + p2(t.getMonth() + 1) + "-" + p2(t.getDate()) + " " + p2(t.getHours()) + ":" + p2(t.getMinutes());
+        return {
+          id: lg.id || "-",
+          question: lg.q || "",
+          answer: (lg.a || "(生成中/已拒答)").slice(0, 60),
+          time: time,
+          risk: lg.refused ? "high" : "normal",
+          raw: lg
+        };
+      });
+      DATA.logs = mapped.concat(DATA.logs || []);
+    }
+
+    /* —— 导出真实问答日志 CSV（字段对齐 EULAR 式验证评分表） —— */
+    var exportLogsBtn = document.getElementById("exportLogs");
+    if (exportLogsBtn) exportLogsBtn.addEventListener("click", function () {
+      var real = [];
+      try { real = JSON.parse(localStorage.getItem("fyzd_qa_logs_v1") || "[]"); } catch (e) { real = []; }
+      var header = ["时间", "会话ID", "问题", "回答", "引用来源", "检索片段", "耗时ms", "是否拒答", "是否本地兜底", "用户反馈"];
+      var rows = real.map(function (lg) {
+        return [lg.ts || "", lg.sessionId || "", lg.q || "", lg.a || "",
+          (lg.sources || []).join("/"), (lg.chunks || []).join("/"),
+          lg.latencyMs || 0, lg.refused ? "是" : "否", lg.fallback ? "是" : "否",
+          lg.feedback === "useful" ? "有用" : lg.feedback === "useless" ? "没用" : ""];
+      });
+      var csv = [header].concat(rows).map(function (r) {
+        return r.map(function (c) { return '"' + String(c == null ? "" : c).replace(/"/g, '""') + '"'; }).join(",");
+      }).join("\r\n");
+      var blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url; a.download = "fengyu-qa-logs-" + todayStr() + ".csv";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast("已导出 " + real.length + " 条真实问答日志");
+    });
+
     /* —— 拉取数据并首次渲染 —— */
     fetch("assets/data/admin.json")
       .then(function (r) { return r.json(); })
-      .then(function (d) { DATA = d; renderAll(); })
+      .then(function (d) { DATA = d; mergeRealLogs(); renderAll(); })
       .catch(function () {
-        kbBody.innerHTML = '<tr><td colspan="6" style="color:var(--danger);">知识库数据加载失败，请刷新重试。</td></tr>';
-        showToast("数据加载失败");
+        DATA = { knowledge: [], logs: [] };
+        mergeRealLogs();
+        renderAll();
+        showToast("演示知识库未加载，已展示本机真实问答日志");
       });
   }
 
@@ -476,6 +623,63 @@
       h.addEventListener("focus", on);
       h.addEventListener("blur", off);
       h.addEventListener("click", on); // 触屏点击后保持高亮，强化区域关联
+    });
+
+    // —— 3D 结构热区联动 AI 实时讲解（与问答共用同一文本模型）——
+    var AI_TOPIC = {
+      synovium: "请用通俗易懂的语言，向患者讲解类风湿关节炎中“关节滑膜”的免疫机制：正常滑膜的作用、滑膜炎如何发生、滑膜增生与血管翳如何逐步侵蚀软骨和骨（约200字，分2-3段，不做诊断）。",
+      cartilage: "请用通俗易懂的语言，向患者讲解关节软骨与骨组织在类风湿关节炎中是如何被炎症破坏的：软骨的正常作用、为什么软骨修复能力有限、血管翳侵蚀后会出现哪些关节变化、患者应如何配合治疗保护关节（约200字，分2-3段，不做诊断）。"
+    };
+    document.querySelectorAll("[data-ai]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var topic = btn.getAttribute("data-ai");
+        var target = document.getElementById(topic === "synovium" ? "aiSynovium" : "aiCartilage");
+        if (!target) return;
+        target.hidden = false;
+        target.innerHTML = '<span class="ai-explain-loading">AI 正在结合指南生成讲解…</span>';
+        btn.disabled = true;
+        var cfg = window.DOUBAO_CONFIG || {};
+        var apiKey = localStorage.getItem("doubao_api_key") || (cfg.defaultKeyB64 ? atob(cfg.defaultKeyB64) : "");
+        var full = "";
+        fetch(cfg.apiUrl || "https://ark.cn-beijing.volces.com/api/v3/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": "Bearer " + apiKey },
+          body: JSON.stringify({
+            model: cfg.model || "", temperature: 0.4, stream: true,
+            messages: [
+              { role: "system", content: "你是风语智答风湿免疫科普助手，讲解通俗、准确，不诊断、不开药，末尾提示仅供科普。" },
+              { role: "user", content: AI_TOPIC[topic] || "请通俗讲解该结构。" }
+            ]
+          })
+        }).then(function (resp) {
+          if (!resp.ok || !resp.body) throw new Error("err");
+          var reader = resp.body.getReader(), decoder = new TextDecoder(), buf = "";
+          function read() {
+            reader.read().then(function (chunk) {
+              if (chunk.done) { btn.disabled = false; return; }
+              buf += decoder.decode(chunk.value, { stream: true });
+              var lines = buf.split("\n"); buf = lines.pop() || "";
+              lines.forEach(function (line) {
+                line = line.trim();
+                if (line.indexOf("data:") !== 0) return;
+                var d = line.slice(5).trim();
+                if (d === "[DONE]") return;
+                try {
+                  var j = JSON.parse(d);
+                  var delta = j.choices && j.choices[0] && j.choices[0].delta && j.choices[0].delta.content;
+                  if (delta) { full += delta; target.innerHTML = esc(full).replace(/\n/g, "<br>"); }
+                } catch (e) {}
+              });
+              read();
+            }).catch(finish);
+          }
+          read();
+        }).catch(finish);
+        function finish() {
+          btn.disabled = false;
+          if (!full) target.innerHTML = '<span class="ai-explain-loading">讲解服务暂时不可用，请先阅读上方静态科普内容。</span>';
+        }
+      });
     });
   }
 
@@ -511,14 +715,31 @@
     if (!chat || !input) return;
 
     var DATA = null;
+    var GUIDE = null;
     var pending = false;
+
+    // —— 多轮对话：保留最近 6 轮（12 条消息）——
+    var HISTORY_KEEP = 6;
+    var history = [];
+    var lastQuestion = null;        // 供“重新生成”使用
+    var lastChunks = [];            // 最近一次检索命中的指南片段
+    var lastLogId = null;           // 最近一条问答日志 id（用于反馈）
+    var sessionId = "s" + Date.now();
+    var LS_HISTORY = "fyzd_chat_history_v1";
+    var LS_LOGS = "fyzd_qa_logs_v1";
 
     fetch("assets/data/qa.json")
       .then(function (r) { return r.json(); })
       .then(function (d) { DATA = d; })
       .catch(function () {
-        DATA = { fallback: "科普知识库加载失败，请刷新页面后重试。", pairs: [] };
+        DATA = { fallback: "科普知识库加载失败，请刷新页面后重试。", pairs: [], redlines: [] };
       });
+
+    // 加载指南锚定知识库（轻量 RAG 的知识层）
+    fetch("assets/data/guidelines.json")
+      .then(function (r) { return r.json(); })
+      .then(function (g) { GUIDE = g; })
+      .catch(function () { GUIDE = { chunks: [] }; });
 
     function addMsg(role, html) {
       var m = document.createElement("div");
@@ -532,10 +753,10 @@
     }
 
     function normalize(s) {
-      return s.toLowerCase().replace(/[\s\p{P}]/gu, "");
+      return String(s == null ? "" : s).toLowerCase().replace(/[\s\p{P}]/gu, "");
     }
 
-    // 红线问题优先拦截：命中则返回拒答文案（不进入科普匹配）
+    // 红线问题优先拦截：命中则返回拒答文案（不进入检索与生成）
     function matchRedline(text) {
       if (!DATA || !DATA.redlines) return null;
       var q = normalize(text);
@@ -574,11 +795,81 @@
       }).join(" ");
     }
 
-    // 豆包大模型系统提示词（精简版，含强制引用标注规则）
-    var DOUBAO_SYSTEM_PROMPT =
-      "你是风语智答风湿免疫病科普助手。仅做健康科普，不诊断、不开药、不给剂量、不建议停药。遇诊断/用药/急症请求，礼貌拒绝并建议就医。回答通俗易懂，纯文本，段落空行分隔。" +
-      "【引用标注强制要求】每个涉及疾病知识的段落末尾必须标注来源编号，用方括号包裹，如[1]、[2]、[3]、[4]，不得遗漏。来源对应：[1]《2018中国类风湿关节炎诊疗指南》中华医学会风湿病学分会；[2]《2020中国系统性红斑狼疮诊疗指南》中华医学会风湿病学分会等；[3]《中国高尿酸血症与痛风诊疗指南(2019)》中华医学会内分泌学分会；[4]《痛风及高尿酸血症基层诊疗指南（实践版·2019）》中华医学会全科医学分会等。通用知识标注最相关的来源。" +
-      "末尾附：以上内容仅为科普参考，不能替代医师面诊，具体诊疗请遵医嘱。";
+    // —— 轻量 RAG 检索：关键词重叠打分，取 Top-K 指南片段 ——
+    function retrieveChunks(text) {
+      if (!GUIDE || !GUIDE.chunks) return [];
+      var q = normalize(text);
+      var scored = GUIDE.chunks.map(function (c) {
+        var score = 0;
+        (c.keywords || []).forEach(function (kw) {
+          var k = normalize(kw);
+          if (!k) return;
+          if (q.indexOf(k) >= 0) score += k.length >= 4 ? 2 : 1;
+        });
+        // 片段内容中的医学名词命中也计分（语义泛化的简化实现）
+        var body = normalize(c.section + c.content);
+        for (var i = 0; i < (c.keywords || []).length; i++) {
+          var k2 = normalize(c.keywords[i]);
+          if (k2 && k2.length >= 3 && body.indexOf(k2) >= 0 && q.indexOf(k2) >= 0) score += 1;
+        }
+        return { c: c, score: score };
+      }).filter(function (x) { return x.score > 0; })
+        .sort(function (a, b) { return b.score - a.score; });
+      var picked = [], seen = {};
+      scored.forEach(function (x) {
+        if (picked.length >= 4) return;
+        if (seen[x.c.id]) return;
+        seen[x.c.id] = 1;
+        picked.push(x.c);
+      });
+      return picked;
+    }
+
+    // 话题切换检测：与上一轮用户问题的检索结果几乎不重叠时，给出非阻断提示
+    function detectTopicSwitch(text, chunks) {
+      var hint = document.getElementById("topicHint");
+      if (!hint || history.length < 2) { if (hint) hint.hidden = true; return; }
+      var prevUser = null;
+      for (var i = history.length - 1; i >= 0; i--) {
+        if (history[i].role === "user") { prevUser = history[i].content; break; }
+      }
+      if (!prevUser) { hint.hidden = true; return; }
+      var prevChunks = retrieveChunks(prevUser).map(function (c) { return c.disease; });
+      var curDisease = chunks.map(function (c) { return c.disease; });
+      var overlap = curDisease.some(function (d) { return prevChunks.indexOf(d) >= 0; });
+      if (curDisease.length && prevChunks.length && !overlap) {
+        hint.textContent = "已检测到新话题，为您重新检索对应指南";
+        hint.hidden = false;
+        setTimeout(function () { hint.hidden = true; }, 4000);
+      } else {
+        hint.hidden = true;
+      }
+    }
+
+    var SOURCE_LEGEND =
+      "[1]《2018中国类风湿关节炎诊疗指南》中华医学会风湿病学分会；" +
+      "[2]《2020中国系统性红斑狼疮诊疗指南》中华医学会风湿病学分会等；" +
+      "[3]《中国高尿酸血症与痛风诊疗指南(2019)》中华医学会内分泌学分会；" +
+      "[4]《痛风及高尿酸血症基层诊疗指南（实践版·2019）》中华医学会全科医学分会等。";
+
+    // 依据检索结果动态组装系统提示词（系统约束 + 知识片段 + 用户问题 三段式）
+    function buildSystemPrompt(chunks) {
+      var base =
+        "你是风语智答风湿免疫病科普助手。仅做健康科普，不诊断、不开药、不给具体剂量、不建议自行停药；遇诊断/处方/急症请求，礼貌拒绝并建议到风湿免疫科就诊。回答通俗易懂，把专业术语解释清楚，用纯文本、段落空行分隔，分点时不要使用markdown符号。";
+      var citeRule =
+        "【引用标注强制要求】每个涉及疾病知识的段落末尾，用方括号标注支撑该段内容的来源编号，如[1][3]，不得遗漏。来源对应：" + SOURCE_LEGEND;
+      var tail = "回答末尾另起一段写：以上内容仅为科普参考，不能替代医师面诊，具体诊疗请遵医嘱。";
+      if (chunks && chunks.length) {
+        var block = chunks.map(function (c, i) {
+          return "片段" + (i + 1) + "（来源[" + c.src + "]，" + c.section + "）：" + c.content;
+        }).join("\n");
+        return base +
+          "\n【以下是检索到的权威指南知识片段，涉及其中疾病的结论请严格以片段为准并按要求标注来源编号】\n" +
+          block + "\n" + citeRule +
+          "\n对于片段没有覆盖的对比性、背景性内容（例如与其他常见疾病的区别、一般性原理），可用医学界公认通识谨慎补充，但不得编造片段中没有的具体数据或结论，也不要为补充的通识内容标注来源编号；只有当问题与风湿免疫健康科普完全无关、或要求诊断/开药/急症处理时，才礼貌说明无法替代医师处理并建议线下就医。" + tail;
+      }
+      return base + "\n本次未检索到高度匹配的指南片段，请依据风湿免疫病公认通识谨慎作答，不要编造来源编号或具体指南数据；没有把握或问题超出科普范围时，建议到风湿免疫科线下就诊。" + tail;
+    }
 
     // 等待期间轮播的科普小知识
     var FUN_FACTS = [
@@ -589,35 +880,105 @@
       "干燥综合征患者常需反复饮水，部分人吃干粮需用水送服",
       "强直性脊柱炎多见于年轻男性，腰背痛夜间加重、活动后缓解",
       "人体免疫系统有时会\"认错人\"攻击自身组织，这就是自身免疫病",
-      "高尿酸血症患者中只有约 10% 会发展为痛风",
       "规范使用激素能快速控制炎症，自行停药可能导致病情反跳",
       "风湿免疫病患者补钙和维生素D有助于预防激素相关骨质疏松",
+      "血尿酸长期控制达标，痛风石可逐渐溶解缩小",
     ];
 
-    // 把回答中的 [1][2][3] 渲染为可点击的引用按钮
+    // 把回答中的 [1][2] 渲染为可点击的引用按钮
     function renderReplyWithCitations(text) {
       var html = esc(text).replace(/\n/g, "<br>");
       html = html.replace(/\[(\d+)\]/g, function (match, num) {
-        return (
-          '<button type="button" class="cite" data-modal="sourceModal" aria-haspopup="dialog">[' +
-          num +
-          "]</button>"
-        );
+        return '<button type="button" class="cite" data-modal="sourceModal" aria-haspopup="dialog">[' + num + "]</button>";
       });
       return html;
     }
 
-    // 渲染本地规则匹配的兜底回答（API 不可用时使用）
     function renderFallback(typing, text) {
       var res = findAnswer(text);
       typing.querySelector(".bubble").innerHTML = esc(res.a) + citeHTML(res.src);
+      attachActionBar(typing, res.a, false);
     }
 
-    function answer(text) {
+    // —— 问答日志（localStorage），供管理后台与验证研究使用 ——
+    function saveLog(entry) {
+      try {
+        var logs = JSON.parse(localStorage.getItem(LS_LOGS) || "[]");
+        entry.id = "L" + Date.now() + Math.floor(Math.random() * 100);
+        logs.unshift(entry);
+        localStorage.setItem(LS_LOGS, JSON.stringify(logs.slice(0, 500)));
+        lastLogId = entry.id;
+        return entry.id;
+      } catch (e) { return null; }
+    }
+    function updateLastLog(patch) {
+      try {
+        var logs = JSON.parse(localStorage.getItem(LS_LOGS) || "[]");
+        for (var i = 0; i < logs.length; i++) {
+          if (logs[i].id === lastLogId) { Object.assign(logs[i], patch); break; }
+        }
+        localStorage.setItem(LS_LOGS, JSON.stringify(logs));
+      } catch (e) {}
+    }
+
+    // —— 回答操作条：复制 / 重新生成 / 有用 / 没用 ——
+    function attachActionBar(msgEl, plainText, isStream) {
+      var bubble = msgEl.querySelector(".bubble");
+      if (!bubble || bubble.querySelector(".msg-actions")) return;
+      var bar = document.createElement("div");
+      bar.className = "msg-actions";
+      bar.innerHTML =
+        '<button type="button" class="act" data-act="copy" title="复制回答">复制</button>' +
+        '<button type="button" class="act" data-act="regen" title="重新生成">重新生成</button>' +
+        '<button type="button" class="act" data-act="up" title="回答有帮助">👍 有用</button>' +
+        '<button type="button" class="act" data-act="down" title="回答没帮助">👎 没用</button>';
+      bubble.appendChild(bar);
+      bar.addEventListener("click", function (e) {
+        var btn = e.target.closest(".act");
+        if (!btn) return;
+        var act = btn.getAttribute("data-act");
+        if (act === "copy") {
+          var t = plainText || bubble.innerText;
+          if (navigator.clipboard) navigator.clipboard.writeText(t).catch(function () {});
+          btn.textContent = "已复制"; setTimeout(function () { btn.textContent = "复制"; }, 1500);
+        } else if (act === "regen") {
+          if (pending || !lastQuestion) return;
+          // 移除最后一条 AI 回答与对应历史，重新生成
+          var lastAi = chat.querySelector(".msg.ai:last-of-type");
+          if (lastAi) lastAi.parentNode.removeChild(lastAi);
+          if (history.length && history[history.length - 1].role === "assistant") history.pop();
+          answer(lastQuestion, true);
+        } else if (act === "up" || act === "down") {
+          updateLastLog({ feedback: act === "up" ? "useful" : "useless" });
+          bar.querySelectorAll(".act").forEach(function (b) { b.classList.remove("active"); });
+          btn.classList.add("active");
+          showToast(act === "up" ? "感谢反馈，很高兴对您有帮助" : "感谢反馈，我们会持续改进");
+        }
+      });
+    }
+
+    // 填充来源弹窗中“本次检索片段”
+    function fillRetrievedModal() {
+      var box = document.getElementById("retrievedChunks");
+      var list = document.getElementById("retrievedList");
+      if (!box || !list) return;
+      if (!lastChunks.length) { box.hidden = true; return; }
+      box.hidden = false;
+      var srcTitle = { 1: "2018中国类风湿关节炎诊疗指南", 2: "2020中国系统性红斑狼疮诊疗指南", 3: "中国高尿酸血症与痛风诊疗指南(2019)", 4: "痛风及高尿酸血症基层诊疗指南（实践版·2019）" };
+      list.innerHTML = lastChunks.map(function (c) {
+        return '<div class="retrieved-item"><span class="ri-src">[' + c.src + '] ' + esc(srcTitle[c.src] || "") + " · " + esc(c.section) + '</span><div class="ri-text">' + esc(c.content) + "</div></div>";
+      }).join("");
+    }
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest('.cite[data-modal="sourceModal"]')) fillRetrievedModal();
+    });
+
+    function answer(text, isRegen) {
       if (pending) return;
       pending = true;
+      var startedAt = Date.now();
 
-      // 先做红线拦截：命中则渲染「安全提示」拒答气泡（不调用大模型）
+      // 1) 红线拦截：命中则渲染「安全提示」拒答气泡（不调用大模型）
       var refused = matchRedline(text);
       if (refused) {
         var typingR = addMsg("ai", "正在判断提问是否可以回答…");
@@ -625,74 +986,75 @@
         setTimeout(function () {
           typingR.querySelector(".bubble").innerHTML =
             '<span class="refuse-tag">安全提示</span>' + esc(refused);
+          history.push({ role: "user", content: text });
+          history.push({ role: "assistant", content: refused });
+          persistHistory();
+          saveLog({ ts: new Date().toISOString(), sessionId: sessionId, q: text, a: refused, refused: true, chunks: [], sources: [] });
           pending = false;
         }, 320);
         return;
       }
 
-      var typing = addMsg("ai", "正在思考…");
-      var cfg = window.DOUBAO_CONFIG || {};
-      // 优先用用户自定义 Key，否则用内置的 base64 编码默认 Key
-      var apiKey = localStorage.getItem("doubao_api_key") || (cfg.defaultKeyB64 ? atob(cfg.defaultKeyB64) : "");
+      // 2) 轻量 RAG 检索
+      var chunks = retrieveChunks(text);
+      lastChunks = chunks;
+      lastQuestion = text;
+      detectTopicSwitch(text, chunks);
 
+      // 两阶段等待提示
+      var typing = addMsg("ai", "🔍 正在检索指南知识库…");
+      var cfg = window.DOUBAO_CONFIG || {};
+      var apiKey = localStorage.getItem("doubao_api_key") || (cfg.defaultKeyB64 ? atob(cfg.defaultKeyB64) : "");
       var bubble = typing.querySelector(".bubble");
 
-      // —— 等待期间轮播科普小知识 ——
-      var factEl = document.createElement("span");
-      factEl.style.cssText = "display:block;color:var(--muted);font-size:13px;margin-top:8px;";
-      bubble.appendChild(factEl);
-      var factIdx = Math.floor(Math.random() * FUN_FACTS.length);
-      factEl.textContent = "💡 " + FUN_FACTS[factIdx];
-      var factTimer = setInterval(function () {
-        factIdx = (factIdx + 1) % FUN_FACTS.length;
+      var stageTimer = setTimeout(function () {
+        bubble.innerHTML = '💡 正在组织科普回答…<span class="thinking-fact"></span>';
+        var factEl = bubble.querySelector(".thinking-fact");
+        factEl.style.cssText = "display:block;color:var(--muted);font-size:13px;margin-top:8px;";
+        var factIdx = Math.floor(Math.random() * FUN_FACTS.length);
         factEl.textContent = "💡 " + FUN_FACTS[factIdx];
-      }, 2800);
-      var factCleared = false;
+        factTimer = setInterval(function () {
+          factIdx = (factIdx + 1) % FUN_FACTS.length;
+          factEl.textContent = "💡 " + FUN_FACTS[factIdx];
+        }, 2800);
+      }, 650);
+      var factTimer = null;
       function clearFact() {
-        if (factCleared) return;
-        factCleared = true;
-        clearInterval(factTimer);
-        if (factEl && factEl.parentNode) factEl.parentNode.removeChild(factEl);
+        clearTimeout(stageTimer);
+        if (factTimer) { clearInterval(factTimer); factTimer = null; }
       }
 
-      // 直接调用豆包大模型 API（流式输出，逐字显示减少等待感）；失败则降级到本地规则科普库
+      // 3) 组装多轮消息（系统约束+知识片段 / 最近6轮历史 / 当前问题）
+      var messages = [{ role: "system", content: buildSystemPrompt(chunks) }];
+      history.slice(-HISTORY_KEEP * 2).forEach(function (m) { messages.push({ role: m.role, content: m.content }); });
+      messages.push({ role: "user", content: text });
+
+      var sources = chunks.map(function (c) { return c.src; }).filter(function (v, i, a) { return a.indexOf(v) === i; });
+      var logId = saveLog({ ts: new Date().toISOString(), sessionId: sessionId, q: text, a: "", streaming: true, chunks: chunks.map(function (c) { return c.id; }), sources: sources, latencyMs: 0, feedback: null });
+
       fetch(cfg.apiUrl || "https://ark.cn-beijing.volces.com/api/v3/chat/completions", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + apiKey,
-        },
-        body: JSON.stringify({
-          model: cfg.model || "",
-          temperature: 0.3,
-          stream: true,
-          messages: [
-            { role: "system", content: DOUBAO_SYSTEM_PROMPT },
-            { role: "user", content: text },
-          ],
-        }),
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + apiKey },
+        body: JSON.stringify({ model: cfg.model || "", temperature: 0.3, stream: true, messages: messages }),
       })
         .then(function (response) {
           if (!response.ok) throw new Error("服务异常 " + response.status);
           if (!response.body) throw new Error("不支持流式响应");
-
           var reader = response.body.getReader();
           var decoder = new TextDecoder();
-          var buffer = "";
-          var fullReply = "";
-
+          var buffer = "", fullReply = "";
           function readChunk() {
             reader.read().then(function (chunk) {
               if (chunk.done) {
-                clearFact();
-                pending = false;
-                if (!fullReply) renderFallback(typing, text);
+                clearFact(); pending = false;
+                if (!fullReply) { renderFallback(typing, text); finishTurn(text, "", sources, chunks, startedAt, true); return; }
+                attachActionBar(typing, fullReply, true);
+                finishTurn(text, fullReply, sources, chunks, startedAt, false);
                 return;
               }
               buffer += decoder.decode(chunk.value, { stream: true });
               var lines = buffer.split("\n");
               buffer = lines.pop() || "";
-
               lines.forEach(function (line) {
                 line = line.trim();
                 if (!line || line.indexOf("data:") !== 0) return;
@@ -700,32 +1062,68 @@
                 if (data === "[DONE]") return;
                 try {
                   var json = JSON.parse(data);
-                  var delta =
-                    json.choices && json.choices[0] && json.choices[0].delta && json.choices[0].delta.content;
+                  var delta = json.choices && json.choices[0] && json.choices[0].delta && json.choices[0].delta.content;
                   if (delta) {
                     clearFact();
                     fullReply += delta;
                     bubble.innerHTML = renderReplyWithCitations(fullReply);
                   }
-                } catch (e) { /* 忽略单条解析错误 */ }
+                } catch (e) {}
               });
-
               readChunk();
             }).catch(function () {
-              clearFact();
-              if (!fullReply) renderFallback(typing, text);
-              pending = false;
+              clearFact(); pending = false;
+              if (!fullReply) { renderFallback(typing, text); finishTurn(text, "", sources, chunks, startedAt, true); }
+              else { attachActionBar(typing, fullReply, true); finishTurn(text, fullReply, sources, chunks, startedAt, false); }
             });
           }
           readChunk();
         })
         .catch(function () {
-          // 静默降级：网络异常 / 密钥错误 / 调用失败时，回退本地规则匹配
           clearFact();
           renderFallback(typing, text);
+          var fb = findAnswer(text);
+          finishTurn(text, fb.a, sources, chunks, startedAt, true);
           pending = false;
         });
     }
+
+    // 一轮结束：写入多轮历史、持久化、更新日志
+    function finishTurn(text, reply, sources, chunks, startedAt, isFallback) {
+      history.push({ role: "user", content: text });
+      if (reply) history.push({ role: "assistant", content: reply });
+      persistHistory();
+      try {
+        var logs = JSON.parse(localStorage.getItem(LS_LOGS) || "[]");
+        for (var i = 0; i < logs.length; i++) {
+          if (logs[i].id === lastLogId) {
+            logs[i].a = reply.slice(0, 2000);
+            logs[i].latencyMs = Date.now() - startedAt;
+            logs[i].fallback = !!isFallback;
+            logs[i].streaming = false;
+            break;
+          }
+        }
+        localStorage.setItem(LS_LOGS, JSON.stringify(logs));
+      } catch (e) {}
+    }
+
+    // —— 会话持久化（刷新不丢失）——
+    function persistHistory() {
+      try { localStorage.setItem(LS_HISTORY, JSON.stringify(history.slice(-HISTORY_KEEP * 2))); } catch (e) {}
+    }
+    function restoreHistory() {
+      try {
+        var saved = JSON.parse(localStorage.getItem(LS_HISTORY) || "[]");
+        if (!saved.length) return;
+        saved.forEach(function (m) {
+          var el = addMsg(m.role === "assistant" ? "ai" : "user", m.role === "assistant" ? renderReplyWithCitations(m.content) : esc(m.content));
+          if (m.role === "assistant") attachActionBar(el, m.content, false);
+        });
+        history = saved;
+      } catch (e) {}
+    }
+    restoreHistory();
 
     function send() {
       var text = input.value.trim();
@@ -733,7 +1131,7 @@
       addMsg("user", esc(text));
       input.value = "";
       input.style.height = "auto";
-      answer(text);
+      answer(text, false);
     }
 
     form.addEventListener("submit", function (e) { e.preventDefault(); send(); });
@@ -746,6 +1144,38 @@
         send();
       });
     });
+
+    // 清空对话
+    var clearBtn = document.getElementById("clearChatBtn");
+    if (clearBtn) clearBtn.addEventListener("click", function () {
+      history = [];
+      localStorage.removeItem(LS_HISTORY);
+      var msgs = chat.querySelectorAll(".msg");
+      for (var i = 1; i < msgs.length; i++) msgs[i].parentNode.removeChild(msgs[i]);
+      showToast("对话已清空");
+    });
+
+    // 语音输入（浏览器原生 Web Speech API，不支持时隐藏按钮）
+    var voiceBtn = document.getElementById("voiceBtn");
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR && voiceBtn) voiceBtn.style.display = "none";
+    if (SR && voiceBtn) {
+      var recog = new SR();
+      recog.lang = "zh-CN";
+      recog.interimResults = false;
+      var listening = false;
+      voiceBtn.addEventListener("click", function () {
+        if (listening) { recog.stop(); return; }
+        try { recog.start(); listening = true; voiceBtn.classList.add("listening"); voiceBtn.textContent = "●"; } catch (e) {}
+      });
+      recog.onresult = function (ev) {
+        var said = ev.results[0][0].transcript;
+        input.value = said;
+        input.focus();
+      };
+      recog.onend = function () { listening = false; voiceBtn.classList.remove("listening"); voiceBtn.textContent = "🎤"; };
+      recog.onerror = function () { listening = false; voiceBtn.classList.remove("listening"); voiceBtn.textContent = "🎤"; };
+    }
   }
 
   /* ---------- 豆包 API Key 配置弹窗 ---------- */
