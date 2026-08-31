@@ -9,7 +9,7 @@
   <meta property="og:description" content="风湿免疫病智能科普问答与患教平台（科普演示原型）">
   <meta property="og:type" content="website">
   <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/style.css?v=20260831b">
 </head>
 <body>
   <header class="site-header">
@@ -62,8 +62,13 @@
         <form class="composer" id="qa-form" aria-label="输入区">
           <label for="qa-input" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);">输入您的问题</label>
           <textarea id="qa-input" rows="2" placeholder="描述您的疑问，例如：晨僵超过多久需要留意？（Enter 发送，Shift+Enter 换行）"></textarea>
+          <button type="button" id="voiceBtn" class="btn btn-ghost icon-btn" title="语音输入" aria-label="语音输入">🎤</button>
           <button type="submit" class="btn btn-primary">发送</button>
         </form>
+        <div class="qa-toolbar">
+          <button type="button" id="clearChatBtn" class="link-btn">清空对话</button>
+          <span class="qa-hint" id="topicHint" hidden></span>
+        </div>
         <p style="text-align:center;color:var(--muted);font-size:13px;margin:4px 0 0;">
           本问答为健康科普参考，不构成医疗建议；角标 <span class="cite" style="cursor:default;">[1]</span> 可查看引用来源。
           <button type="button" class="link-btn" data-modal="configModal" style="margin-left:6px;">配置 API Key</button>
@@ -90,6 +95,10 @@
           <li><div class="t">《中国高尿酸血症与痛风诊疗指南(2019)》</div><div class="d">中华医学会内分泌学分会 · 中华内分泌代谢杂志, 2020, 36(1): 1-13</div></li>
           <li><div class="t">《痛风及高尿酸血症基层诊疗指南（实践版·2019）》</div><div class="d">中华医学会全科医学分会等 · 中华全科医师杂志, 2020, 19(6): 486-494</div></li>
         </ul>
+        <div id="retrievedChunks" class="retrieved-chunks" hidden>
+          <div class="retrieved-title">本次回答检索到的指南片段（逐句可核查）</div>
+          <div id="retrievedList"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -128,6 +137,6 @@
     </div>
   </div>
 
-  <script src="assets/js/main.js?v=20260827g"></script>
+  <script src="assets/js/main.js?v=20260831b"></script>
 </body>
 </html>
