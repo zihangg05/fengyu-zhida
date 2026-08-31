@@ -9,7 +9,7 @@
   <meta property="og:description" content="知识库、对话日志与概览统计管理（交互原型）">
   <meta property="og:type" content="website">
   <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/style.css?v=20260831b">
 </head>
 <body>
   <header class="site-header">
@@ -51,7 +51,8 @@
           <h2>知识库管理</h2>
           <div class="toolbar-actions">
             <input type="search" id="kbSearch" class="field field-search" placeholder="搜索标题 / 分类…" aria-label="搜索知识库">
-            <button class="btn btn-ghost" id="exportCsv" type="button">导出 CSV</button>
+            <button class="btn btn-ghost" id="exportCsv" type="button">导出知识库 CSV</button>
+            <button class="btn btn-ghost" id="exportLogs" type="button">导出问答日志 CSV</button>
             <button class="btn btn-primary" data-modal="addModal" type="button">＋ 新增条目</button>
           </div>
         </div>
@@ -172,6 +173,6 @@
     </div>
   </div>
 
-  <script src="assets/js/main.js"></script>
+  <script src="assets/js/main.js?v=20260831b"></script>
 </body>
 </html>
