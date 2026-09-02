@@ -1,0 +1,66 @@
+/* =========================================================
+   风语智答 — 管理后台增强样式（驾驶舱 / 评测中心 / 检索测试台）
+   设计令牌沿用 style.css 的 --blue-*、--muted、--danger 等。
+   ========================================================= */
+.admin-extra { margin-top: 18px; }
+
+/* ---- 驾驶舱 ---- */
+.dash-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 18px; }
+.dash-cards .stat { padding: 14px 16px; border: 1px solid var(--blue-100); border-radius: var(--radius-sm); background: #fff; box-shadow: var(--shadow-sm); }
+.dash-cards .stat .n { font-size: 24px; font-weight: 800; color: var(--blue-700); line-height: 1.15; }
+.dash-cards .stat .l { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.dash-cards .stat .s { font-size: 11px; color: var(--muted); opacity: .8; margin-top: 2px; }
+.dash-cards .stat.stat-bad .n { color: var(--danger); }
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 720px) { .chart-grid { grid-template-columns: 1fr; } }
+.chart-card { border: 1px solid var(--blue-100); border-radius: var(--radius); background: #fff; padding: 14px 16px; box-shadow: var(--shadow-sm); }
+.chart-card h3 { margin: 0 0 12px; font-size: 15px; }
+
+/* 近7日趋势柱状 */
+.trend-box { display: flex; align-items: flex-end; gap: 10px; height: 158px; padding: 4px 2px 0; border-bottom: 1px solid var(--blue-100); }
+.tcol { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; height: 100%; }
+.tbar-wrap { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 2px; }
+.tbar { width: 34%; max-width: 22px; min-height: 6px; background: linear-gradient(180deg, var(--blue-500), var(--blue-600)); border-radius: 4px 4px 0 0; transition: height .3s; }
+.tbar.r { background: var(--danger); opacity: .85; }
+.tl { font-size: 11px; color: var(--muted); margin-top: 6px; }
+.tn { font-size: 11px; font-weight: 700; color: var(--blue-900); }
+
+/* 疾病分布条形 */
+.drow { display: flex; align-items: center; gap: 10px; margin: 7px 0; }
+.dn { flex: 0 0 118px; font-size: 12.5px; color: var(--blue-900); }
+.dbg { flex: 1; height: 14px; background: var(--blue-50); border-radius: 999px; overflow: hidden; }
+.db { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--blue-400), var(--blue-600)); }
+.dv { flex: 0 0 34px; text-align: right; font-size: 12.5px; font-weight: 700; color: var(--blue-700); }
+.dash-note { font-size: 12px; color: var(--muted); margin: 10px 2px 0; }
+
+/* ---- 评测中心 ---- */
+.eval-stat { display: grid; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.estat { border: 1px solid var(--blue-100); border-radius: var(--radius-sm); background: #fff; padding: 12px; text-align: center; box-shadow: var(--shadow-sm); }
+.estat .n { font-size: 22px; font-weight: 800; color: var(--blue-700); }
+.estat .l { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.erow { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--blue-50); }
+.erow:last-child { border-bottom: none; }
+.eq { flex: 1; min-width: 0; }
+.eqq { font-size: 14px; font-weight: 600; color: var(--blue-900); }
+.eqa { font-size: 13px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+.eqm { font-size: 11px; color: var(--muted); opacity: .85; margin-top: 4px; }
+.ebtns { flex: 0 0 auto; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.ebtns button { border: 1px solid var(--blue-200); background: #fff; color: var(--blue-600); font-size: 12.5px; font-weight: 600; padding: 7px 12px; border-radius: 999px; cursor: pointer; min-height: 34px; transition: all .15s; }
+.ebtns button:hover { border-color: var(--blue-500); background: var(--blue-50); }
+.ebtns button.onok { background: #e3f7ec; border-color: #1f9d55; color: #1f9d55; }
+.ebtns button.onpa { background: var(--warn-bg); border-color: #d5a021; color: #b8860b; }
+.ebtns button.onbd { background: #fdecea; border-color: var(--danger); color: var(--danger); }
+@media (max-width: 560px) { .erow { flex-direction: column; } .ebtns { justify-content: flex-start; } }
+
+/* ---- 检索测试台 ---- */
+.rag-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.rag-bar .field { flex: 1; min-width: 240px; }
+.rag-leg { display: inline-block; margin: 4px 8px 4px 0; font-size: 12px; color: var(--muted); background: var(--blue-50); padding: 3px 10px; border-radius: 999px; }
+.rag-red { background: #fdecea; border: 1px solid var(--danger); color: #7c2d28; border-radius: var(--radius-sm); padding: 12px 14px; font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+.rag-red span { display: block; margin-top: 6px; color: var(--muted); font-size: 12.5px; }
+.rag-tip { font-size: 12px; color: var(--muted); margin-top: 10px; }
+#ragOut table th { font-size: 12.5px; }
+#ragOut table td b { color: var(--blue-700); }
+
+/* 恢复默认按钮的二次确认态 */
+.btn[data-arm="1"] { background: var(--danger); color: #fff; border-color: var(--danger); }
