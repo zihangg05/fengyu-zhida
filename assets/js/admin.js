@@ -1,6 +1,6 @@
 /* =========================================================
    风语智答 — 管理后台增强脚本（独立于 main.js）
-   功能：数据驾驶舱可视化 / 回答质量评测中心 / RAG 检索测试台
+   功能：质控驾驶舱可视化 / 回答质量评测中心 / RAG 检索测试台
    说明：纯原生 JS + CSS/SVG 自绘，无外部依赖，断网可演示。
    ========================================================= */
 (function () {
@@ -98,7 +98,7 @@
     return { logs: real.concat(demo), demoCount: demo.length, realCount: real.length };
   }
 
-  /* ---------- 1. 数据驾驶舱 ---------- */
+  /* ---------- 1. 质控驾驶舱 ---------- */
   var dash = document.getElementById("dashArea");
   if (dash) initDash();
   function initDash() {
