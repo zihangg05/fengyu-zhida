@@ -4,12 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>管理后台 · 风语智答｜风湿免疫病智能科普患教平台</title>
-  <meta name="description" content="风语智答管理后台：知识库管理、对话日志与概览统计（交互原型，数据来自本地 JSON）。">
+  <meta name="description" content="风语智答管理后台：数据驾驶舱、知识库管理、回答质量评测、对话日志、RAG 检索测试台。">
   <meta property="og:title" content="风语智答 · 管理后台">
-  <meta property="og:description" content="知识库、对话日志与概览统计管理（交互原型）">
+  <meta property="og:description" content="数据驾驶舱 / 知识库 / 质量评测 / 日志 / 检索测试台">
   <meta property="og:type" content="website">
   <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
-  <link rel="stylesheet" href="assets/css/style.css?v=20260831d">
+  <link rel="stylesheet" href="assets/css/style.css?v=20260902a">
+  <link rel="stylesheet" href="assets/css/admin.css?v=20260902a">
 </head>
 <body>
   <header class="site-header">
@@ -26,6 +27,7 @@
         <a href="lab-reading.html">化验单解读</a>
         <a href="immune-demo.html">免疫机制演示</a>
         <a href="admin.html">管理后台</a>
+        <a href="project.html">项目介绍</a>
       </nav>
     </div>
   </header>
@@ -34,11 +36,11 @@
     <div class="container">
       <div class="section-head">
         <span class="eyebrow">管理后台</span>
-        <h1>知识库与对话日志</h1>
-        <p>管理科普知识条目、查看对话日志与概览统计。数据来自本地 JSON，可在页面内新增 / 编辑 / 搜索 / 导出（演示为前端交互，不落库）。</p>
+        <h1>运营驾驶舱与质量评测</h1>
+        <p>实时问答数据看板、知识库管理、回答质量人工评测、安全拦截台账与 RAG 检索过程可视化。数据来自本机真实问答日志，内置演示数据用于无历史时的完整展示（已标注“演示”）。</p>
       </div>
 
-      <!-- 概览统计：由数据自动计算 -->
+      <!-- 概览统计：由数据自动计算（保留） -->
       <section class="stat-grid" id="statGrid" aria-label="概览统计">
         <div class="stat"><div class="n" data-stat="total">–</div><div class="l">知识条目总数</div></div>
         <div class="stat"><div class="n" data-stat="published">–</div><div class="l">已发布</div></div>
@@ -46,17 +48,75 @@
         <div class="stat"><div class="n" data-stat="risk">–</div><div class="l">高风险日志</div></div>
       </section>
 
+      <!-- 数据驾驶舱 -->
+      <section class="admin-extra" id="adminEnhance">
+        <section class="card" id="dashArea">
+          <div class="toolbar"><h2>数据驾驶舱</h2></div>
+          <div class="dash-cards" id="dashCards"></div>
+          <div class="chart-grid">
+            <div class="chart-card">
+              <h3>近 7 日问答趋势（含安全拦截）</h3>
+              <div class="trend-box" id="trendBars"></div>
+            </div>
+            <div class="chart-card">
+              <h3>疾病咨询分布</h3>
+              <div id="distRows"></div>
+            </div>
+          </div>
+          <p class="dash-note" id="dashNote"></p>
+        </section>
+
+        <!-- 回答质量评测中心 -->
+        <section class="card" id="evalArea">
+          <div class="toolbar">
+            <h2>回答质量评测中心</h2>
+            <div class="toolbar-actions">
+              <button class="btn btn-ghost" id="exportEval" type="button">导出评测报告 CSV</button>
+            </div>
+          </div>
+          <p class="empty-hint">对普通回答逐条人工抽检（正确 / 部分正确 / 错误），再点一次可取消；评分保存在本机，可导出评测报告。</p>
+          <div class="eval-stat" id="evalStat"></div>
+          <div id="evalList"></div>
+        </section>
+
+        <!-- 安全拦截台账 -->
+        <section class="card">
+          <div class="toolbar"><h2>安全拦截台账</h2></div>
+          <p class="empty-hint">命中安全红线（诊断、处方调整、急症等）被系统拒答的记录，体现合规兜底。</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>时间</th><th>提问</th><th>拦截结果</th><th>标记</th></tr></thead>
+              <tbody id="ledgerBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- RAG 检索可解释测试台 -->
+        <section class="card" id="ragArea">
+          <div class="toolbar"><h2>RAG 检索可解释测试台</h2></div>
+          <p class="empty-hint">输入任意患者问题，实时展示：是否命中安全红线、检索到哪些指南知识块、关键词得分与注入顺序——与智能问答前台完全一致的算法。</p>
+          <div class="rag-bar">
+            <input type="search" id="ragInput" class="field field-search" style="min-width:280px" placeholder="例：强直性脊柱炎的腰背痛有什么特点？" aria-label="检索测试输入">
+            <button class="btn btn-primary" id="ragRun" type="button">检索并解释</button>
+          </div>
+          <div id="ragSources"></div>
+          <div id="ragOut"></div>
+        </section>
+      </section>
+
       <section class="card">
         <div class="toolbar">
           <h2>知识库管理</h2>
           <div class="toolbar-actions">
             <input type="search" id="kbSearch" class="field field-search" placeholder="搜索标题 / 分类…" aria-label="搜索知识库">
+            <button class="btn btn-ghost" id="kbReset" type="button">恢复默认</button>
             <button class="btn btn-ghost" id="exportCsv" type="button">导出知识库 CSV</button>
             <button class="btn btn-ghost" id="exportLogs" type="button">导出问答日志 CSV</button>
             <button class="btn btn-primary" data-modal="addModal" type="button">＋ 新增条目</button>
           </div>
         </div>
         <p class="empty-hint" id="kbEmpty" hidden>没有匹配的知识条目。</p>
+        <p class="empty-hint">新增 / 编辑 / 删除会保存到本机（刷新不丢失），点击“恢复默认”可还原内置知识库。</p>
         <div class="table-wrap">
           <table>
             <thead>
@@ -173,6 +233,7 @@
     </div>
   </div>
 
-  <script src="assets/js/main.js?v=20260831d"></script>
+  <script src="assets/js/main.js?v=20260902a"></script>
+  <script src="assets/js/admin.js?v=20260902a"></script>
 </body>
 </html>
