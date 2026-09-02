@@ -1,10 +1,10 @@
 /* =========================================================
-   风语智答 — 管理后台增强样式（驾驶舱 / 评测中心 / 检索测试台）
+   风语智答 — 管理后台增强样式（质控驾驶舱 / 评测中心 / 检索测试台）
    设计令牌沿用 style.css 的 --blue-*、--muted、--danger 等。
    ========================================================= */
 .admin-extra { margin-top: 18px; }
 
-/* ---- 驾驶舱 ---- */
+/* ---- 质控驾驶舱 ---- */
 .dash-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 18px; }
 .dash-cards .stat { padding: 14px 16px; border: 1px solid var(--blue-100); border-radius: var(--radius-sm); background: #fff; box-shadow: var(--shadow-sm); }
 .dash-cards .stat .n { font-size: 24px; font-weight: 800; color: var(--blue-700); line-height: 1.15; }
