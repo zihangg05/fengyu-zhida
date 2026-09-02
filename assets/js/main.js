@@ -395,6 +395,10 @@
     var logRisk = document.getElementById("logRisk");
     var kbEmpty = document.getElementById("kbEmpty");
     var logEmpty = document.getElementById("logEmpty");
+    var KB_LS = "fyzd_kb_v1";
+    var KB_LS_DIRTY = "fyzd_kb_dirty";
+    function loadKb() { try { return JSON.parse(localStorage.getItem(KB_LS) || "[]"); } catch (e) { return []; } }
+    function saveKb() { try { localStorage.setItem(KB_LS, JSON.stringify(DATA.knowledge)); localStorage.setItem(KB_LS_DIRTY, "1"); } catch (e) {} }
 
     function statusBadge(s) {
       if (s === "pending") return '<span class="badge warn">待审核</span>';
@@ -437,7 +441,7 @@
           '<td data-label="科普标题">' + esc(x.title) + "</td>" +
           '<td data-label="更新时间">' + esc(x.updated) + "</td>" +
           '<td data-label="状态">' + statusBadge(x.status) + "</td>" +
-          '<td data-label="操作"><button class="link-btn kb-edit" type="button" data-id="' + esc(x.id) + '">编辑</button></td>' +
+          '<td data-label="操作"><button class="link-btn kb-edit" type="button" data-id="' + esc(x.id) + '">编辑</button> <button class="link-btn kb-del" type="button" data-id="' + esc(x.id) + '">删除</button></td>' +
           "</tr>";
       }).join("");
     }
@@ -472,7 +476,49 @@
       document.getElementById("editTitleInput").value = item.title;
       document.getElementById("editContent").value = item.content;
       document.getElementById("editStatus").value = item.status;
-      openModal("editModal");
+      openModal("editModal");
+    });
+
+    /* -- 删除：二次点击确认 -- */
+    document.addEventListener("click", function (e) {
+      var b = e.target.closest(".kb-del");
+      if (!b) return;
+      var id = b.getAttribute("data-id");
+      var item = DATA.knowledge.filter(function (x) { return x.id === id; })[0];
+      if (!item) return;
+      if (b.getAttribute("data-arm") !== "1") {
+        b.setAttribute("data-arm", "1");
+        var prev = b.textContent;
+        b.textContent = "确认删除？";
+        setTimeout(function () { b.removeAttribute("data-arm"); b.textContent = prev; }, 4000);
+        return;
+      }
+      DATA.knowledge = DATA.knowledge.filter(function (x) { return x.id !== id; });
+      saveKb();
+      renderAll();
+      showToast("已删除条目：" + item.title);
+    });
+
+    /* -- 恢复默认知识库：二次点击确认 -- */
+    var kbReset = document.getElementById("kbReset");
+    if (kbReset) kbReset.addEventListener("click", function () {
+      if (kbReset.getAttribute("data-arm") !== "1") {
+        kbReset.setAttribute("data-arm", "1");
+        var prevTxt = kbReset.textContent;
+        kbReset.textContent = "再点一次确认恢复默认";
+        setTimeout(function () { kbReset.removeAttribute("data-arm"); kbReset.textContent = prevTxt; }, 4000);
+        return;
+      }
+      localStorage.removeItem(KB_LS);
+      localStorage.removeItem(KB_LS_DIRTY);
+      fetch("assets/data/admin.json")
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          DATA.knowledge = (d && d.knowledge) || [];
+          renderAll();
+          showToast("已恢复默认知识库");
+        })
+        .catch(function () { showToast("恢复失败，请检查网络后重试"); });
     });
 
     var editForm = document.getElementById("editForm");
@@ -486,6 +532,7 @@
       item.content = document.getElementById("editContent").value.trim();
       item.status = document.getElementById("editStatus").value;
       item.updated = todayStr();
+      saveKb();
       renderAll();
       closeModal(document.getElementById("editModal"));
       showToast("已保存修改：" + item.title);
@@ -508,6 +555,7 @@
         status: document.getElementById("addStatus").value
       };
       DATA.knowledge.unshift(item);
+      saveKb();
       addForm.reset();
       renderAll();
       closeModal(document.getElementById("addModal"));
@@ -598,7 +646,7 @@
     /* —— 拉取数据并首次渲染 —— */
     fetch("assets/data/admin.json")
       .then(function (r) { return r.json(); })
-      .then(function (d) { DATA = d; mergeRealLogs(); renderAll(); })
+      .then(function (d) { DATA = { knowledge: (d && d.knowledge) || [], logs: (d && d.logs) || [] }; var saved = loadKb(); if (localStorage.getItem(KB_LS_DIRTY) === "1" && saved.length) DATA.knowledge = saved; mergeRealLogs(); renderAll(); })
       .catch(function () {
         DATA = { knowledge: [], logs: [] };
         mergeRealLogs();
