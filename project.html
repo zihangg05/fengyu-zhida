@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>项目介绍 · 风语智答｜风湿免疫病智能科普患教平台</title>
+  <meta name="description" content="风语智答项目介绍：系统架构、核心功能、指南数据来源、技术栈、创新点与合规声明。">
+  <meta property="og:title" content="风语智答 · 项目介绍">
+  <meta property="og:description" content="系统架构 / 核心功能 / 指南来源 / 技术栈 / 创新点">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+  <link rel="stylesheet" href="assets/css/style.css?v=20260902a">
+  <style>
+    /* 项目介绍页专用（静态架构图等） */
+    .arch { border: 1px solid var(--blue-100); border-radius: var(--radius); background: #fff; padding: 18px; box-shadow: var(--shadow-sm); margin-bottom: 16px; }
+    .arch-layer { display: flex; flex-direction: column; gap: 4px; border-left: 3px solid var(--blue-300); padding: 6px 0 6px 14px; margin: 10px 0; }
+    .arch-layer .al-title { font-size: 13.5px; font-weight: 700; color: var(--blue-900); }
+    .arch-layer .al-items { display: flex; flex-wrap: wrap; gap: 6px; }
+    .arch-layer .al-item { font-size: 12.5px; color: #334155; background: var(--blue-50); border: 1px solid var(--blue-100); padding: 4px 10px; border-radius: 999px; }
+    .arch-flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; margin: 12px 0 4px; }
+    .arch-flow .step { font-size: 12.5px; font-weight: 600; color: var(--blue-700); background: #fff; border: 1px solid var(--blue-200); border-radius: 10px; padding: 8px 12px; }
+    .arch-flow .arrow { color: var(--blue-500); font-weight: 700; }
+    .guide-tag { display: inline-block; background: var(--blue-50); color: var(--blue-900); border: 1px solid var(--blue-100); border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 700; margin-right: 6px; }
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+    .feature { border: 1px solid var(--blue-100); border-radius: var(--radius-sm); background: #fff; padding: 14px 16px; box-shadow: var(--shadow-sm); }
+    .feature h4 { margin: 0 0 6px; font-size: 15px; color: var(--blue-900); }
+    .feature p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.6; }
+    .pill-list li { margin: 6px 0; font-size: 13.5px; line-height: 1.6; color: #334155; }
+    .pill-list li b { color: var(--blue-700); }
+    .pill-list li::marker { color: var(--blue-500); }
+    .src-row { display: flex; gap: 10px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--blue-50); }
+    .src-row:last-child { border-bottom: none; }
+    .src-row .g { flex: 0 0 34px; font-weight: 800; color: var(--blue-700); }
+    .src-row .t { flex: 1; font-size: 13.5px; color: #334155; }
+    .src-row .o { flex: 0 0 auto; font-size: 12px; color: var(--muted); text-align: right; }
+    @media (max-width: 560px) { .src-row { flex-wrap: wrap; } .src-row .o { flex-basis: 100%; text-align: left; } }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="nav-container">
+      <a class="brand" href="index.html" aria-label="风语智答 首页">
+        <span class="brand-logo">风</span>
+        <span class="brand-text"><strong>风语智答</strong><small>智能科普患教平台</small></span>
+      </a>
+      <button class="nav-toggle" aria-label="打开导航菜单" aria-expanded="false" aria-controls="nav-menu">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav-menu" id="nav-menu" aria-label="主导航">
+        <a href="index.html">智能问答</a>
+        <a href="lab-reading.html">化验单解读</a>
+        <a href="immune-demo.html">免疫机制演示</a>
+        <a href="admin.html">管理后台</a>
+        <a href="project.html">项目介绍</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">项目介绍</span>
+        <h1>风语智答：面向风湿免疫病患者的智能科普问答与患教平台</h1>
+        <p>针对风湿免疫病（类风湿关节炎、系统性红斑狼疮、痛风、强直性脊柱炎、干燥综合征、骨关节炎、骨质疏松）患者的高频疑问，提供基于最新诊疗指南、可追溯来源的智能科普问答、化验单解读、免疫机制可视化与运营质控后台。</p>
+      </div>
+
+      <!-- 系统架构 -->
+      <section class="card">
+        <div class="toolbar"><h2>系统架构</h2></div>
+        <div class="arch">
+          <div class="arch-layer">
+            <div class="al-title">① 用户层</div>
+            <div class="al-items"><span class="al-item">风湿免疫病患者</span><span class="al-item">家属</span><span class="al-item">PC / 手机浏览器</span><span class="al-item">GitHub Pages 静态部署</span></div>
+          </div>
+          <div class="arch-layer">
+            <div class="al-title">② 前端页面层</div>
+            <div class="al-items"><span class="al-item">智能问答 index.html</span><span class="al-item">化验单解读 lab-reading.html</span><span class="al-item">免疫机制演示 immune-demo.html</span><span class="al-item">管理后台 admin.html</span><span class="al-item">项目介绍 project.html</span></div>
+          </div>
+          <div class="arch-layer">
+            <div class="al-title">③ 交互与安全逻辑层</div>
+            <div class="al-items"><span class="al-item">安全红线拦截</span><span class="al-item">轻量 RAG 检索</span><span class="al-item">多轮对话记忆</span><span class="al-item">章节级引用溯源</span><span class="al-item">流式渲染</span><span class="al-item">问答日志采集</span><span class="al-item">质量人工评测</span></div>
+          </div>
+          <div class="arch-layer">
+            <div class="al-title">④ 数据与知识层</div>
+            <div class="al-items"><span class="al-item">指南知识库（7 本 · 49 个知识块）</span><span class="al-item">化验单指标字典（42 项）</span><span class="al-item">科普问答库</span><span class="al-item">本地问答日志（localStorage）</span></div>
+          </div>
+          <div class="arch-layer">
+            <div class="al-title">⑤ 大模型服务层（火山方舟）</div>
+            <div class="al-items"><span class="al-item">豆包文本模型 · 智能问答</span><span class="al-item">豆包视觉模型 · 化验单识别</span><span class="al-item">豆包文本模型 · 免疫机制讲解</span></div>
+          </div>
+          <div class="arch-flow">
+            <span class="step">用户提问</span><span class="arrow">→</span>
+            <span class="step">红线拦截</span><span class="arrow">→</span>
+            <span class="step">RAG 检索指南块</span><span class="arrow">→</span>
+            <span class="step">组装提示词</span><span class="arrow">→</span>
+            <span class="step">豆包大模型</span><span class="arrow">→</span>
+            <span class="step">流式回答 + 引用</span><span class="arrow">→</span>
+            <span class="step">日志落库</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 核心功能 -->
+      <section class="card">
+        <div class="toolbar"><h2>核心功能</h2></div>
+        <div class="feature-grid">
+          <div class="feature"><h4>智能科普问答</h4><p>基于最新指南的轻量 RAG，回答标注 [n] 来源编号，点击可查看对应指南章节；支持多轮追问、流式输出、语音输入与操作反馈。</p></div>
+          <div class="feature"><h4>化验单智能解读</h4><p>上传化验单图片，豆包视觉模型识别指标，结合风湿免疫专科指标字典给出通俗解读、危急值提示与就医建议（纯科普，不替代诊断）。</p></div>
+          <div class="feature"><h4>免疫机制可视化</h4><p>3D 交互式展示滑膜炎症、血管翳侵蚀等过程，热区联动 AI 实时讲解，降低专业壁垒。</p></div>
+          <div class="feature"><h4>运营质控后台</h4><p>数据驾驶舱、知识库管理、回答质量人工评测、安全拦截台账、RAG 检索过程可视化，形成内容与质量双闭环。</p></div>
+        </div>
+      </section>
+
+      <!-- 指南数据来源 -->
+      <section class="card">
+        <div class="toolbar"><h2>指南与数据来源（回答引用可核查）</h2></div>
+        <p class="empty-hint">回答中的 [1]~[7] 编号对应下列 7 本最新版指南 / 诊疗规范，均来自中华医学会各分会官方发布，卷期页可核查。</p>
+        <div class="src-row"><span class="g">[1]</span><span class="t">《2024中国类风湿关节炎诊疗指南》中华医学会风湿病学分会</span><span class="o">中华内科杂志 2024,63(11)</span></div>
+        <div class="src-row"><span class="g">[2]</span><span class="t">《中国系统性红斑狼疮诊疗指南（2025版）》</span><span class="o">中华医学杂志 2025,105(23):1879-1906</span></div>
+        <div class="src-row"><span class="g">[3]</span><span class="t">《中国高尿酸血症与痛风诊疗指南（2024）》中华医学会内分泌学分会</span><span class="o">中华内分泌代谢杂志 2025</span></div>
+        <div class="src-row"><span class="g">[4]</span><span class="t">《强直性脊柱炎诊疗规范》</span><span class="o">中华内科杂志 2022,61(8):893-900</span></div>
+        <div class="src-row"><span class="g">[5]</span><span class="t">《原发性干燥综合征诊疗规范（2023）》</span><span class="o">中华内科杂志 2023,62(9):1059-1067</span></div>
+        <div class="src-row"><span class="g">[6]</span><span class="t">《中国骨关节炎诊疗指南（2024版）》</span><span class="o">中华疼痛学杂志 2024,20(3):323-338</span></div>
+        <div class="src-row"><span class="g">[7]</span><span class="t">《原发性骨质疏松症诊疗指南（2022）》</span><span class="o">中华骨质疏松和骨矿盐疾病杂志 2022,15(6):573-611</span></div>
+        <p class="empty-hint" style="margin-top:10px">另：化验单指标解读参考《临床检验诊断学》等权威教材与说明书式科普口径，所有解释均标注“科普参考、不替代诊疗”。</p>
+      </section>
+
+      <!-- 技术栈 -->
+      <section class="card">
+        <div class="toolbar"><h2>技术栈与工程特点</h2></div>
+        <ul class="pill-list">
+          <li><b>纯前端原生实现</b>：HTML + CSS + 原生 JavaScript，无框架依赖，轻量可移植，GitHub Pages 免费托管。</li>
+          <li><b>轻量 RAG</b>：本地加载指南知识库，按“关键词重叠 + 语义泛化”打分检索 Top 知识块注入提示词，答案可溯源、不编造来源。</li>
+          <li><b>多轮对话</b>：携带最近 6 轮历史，支持话题切换自动重新检索提示。</li>
+          <li><b>视觉大模型</b>：化验单图片经豆包视觉模型识别指标，本地指标字典富化解读。</li>
+          <li><b>数据与质量闭环</b>：问答日志本地持久化，后台可导出、可人工评测、可复现检索过程。</li>
+          <li><b>内置免配置</b>：演示 Key 内置（base64），首次使用无需配置，开箱即用。</li>
+        </ul>
+      </section>
+
+      <!-- 创新点 -->
+      <section class="card">
+        <div class="toolbar"><h2>创新点</h2></div>
+        <ul class="pill-list">
+          <li><b>患者视角 + 专科权威</b>：以患者高频疑问组织内容，答案锚定最新专科指南，引用可逐条核查。</li>
+          <li><b>句句可溯源</b>：回答带章节级引用弹窗，从“黑盒生成”走向“可解释科普”。</li>
+          <li><b>安全优先</b>：诊断、处方调整、急症等红线问题一律合规拒答并引导就医，兼具科普价值与合规兜底。</li>
+          <li><b>轻量免后端</b>：静态部署 + 客户端检索 + 大模型 API，成本低、可推广，适合基层患教场景。</li>
+          <li><b>质量可评估</b>：对标 EULAR 患者教育验证思路，建立人工抽检评分、拦截台账与检索复现机制。</li>
+        </ul>
+      </section>
+
+      <!-- 验证与合规 -->
+      <section class="card">
+        <div class="toolbar"><h2>验证方法与合规声明</h2></div>
+        <ul class="pill-list">
+          <li><b>内容验证</b>：回答知识块与引用编号均来自上述公开指南真实出处，本机经多轮问答实测（含强直、干燥、骨关节炎等新增病种检索命中验证）。</li>
+          <li><b>质量验证</b>：后台提供逐条人工抽检（正确 / 部分正确 / 错误）、准确率统计与安全拦截台账，支持导出评测报告。</li>
+          <li><b>合规声明</b>：本平台全部内容仅为科普参考，不构成任何专业建议，不替代医师面诊；涉及诊断、治疗决策请前往医院风湿免疫专科就诊。平台不采集上传任何个人身份信息，问答数据仅保存在用户本机浏览器。</li>
+        </ul>
+      </section>
+    </div>
+  </main>
+
+  <footer class="disclaimer">
+    <p>⚠ 全部内容仅为科普参考，不构成任何专业建议，不能替代医师面诊，身体异常请前往医院专科就诊。</p>
+  </footer>
+
+  <script src="assets/js/main.js?v=20260902a"></script>
+</body>
+</html>
